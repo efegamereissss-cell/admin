@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Dale Dawson // Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg-void:#07080b;
+  --bg-panel:#0d0f14;
+  --bg-panel-2:#12151c;
+  --line:#1e222c;
+  --accent:#7c5cff;
+  --accent-2:#00e5c7;
+  --danger:#ff4d6a;
+  --warn:#ffb545;
+  --text:#e8e9ee;
+  --text-dim:#8a8fa3;
+  --text-faint:#565b6e;
+  --radius:14px;
+  --font-display:'Chakra Petch', sans-serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg-void);
+  color:var(--text);
+  font-family:var(--font-body);
+  overflow:hidden;
+  height:100vh;
+  position:relative;
+}
+.backdrop{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(124,92,255,.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(0,229,199,.10), transparent 60%),
+    linear-gradient(180deg,#07080b, #08090d 60%, #060709);
+}
+.backdrop::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse 1200px 800px at 50% 0%, black, transparent 75%);
+}
+.scanline{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg, transparent, rgba(124,92,255,.05), transparent);
+  height:220px;width:100%;
+  animation:scan 9s linear infinite;
+  opacity:.5;
+}
+@keyframes scan{0%{transform:translateY(-220px)}100%{transform:translateY(100vh)}}
+
+.shell{
+  position:relative;z-index:2;
+  display:grid;
+  grid-template-columns:272px 1fr;
+  height:100vh;
+}
+
+.sidebar{
+  background:linear-gradient(180deg, var(--bg-panel), #0a0c11);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  padding:22px 16px;
+  position:relative;
+}
+.brand{
+  display:flex;align-items:center;gap:12px;
+  padding:6px 10px 26px 10px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:18px;
+}
+.brand-mark{
+  width:38px;height:38px;border-radius:10px;
+  background:conic-gradient(from 220deg, var(--accent), var(--accent-2), var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:15px;color:#07080b;
+  box-shadow:0 0 22px rgba(124,92,255,.45);
+  animation:pulse-glow 3.4s ease-in-out infinite;
+}
+@keyframes pulse-glow{
+  0%,100%{box-shadow:0 0 16px rgba(124,92,255,.35);}
+  50%{box-shadow:0 0 28px rgba(0,229,199,.45);}
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.05;}
+.brand-text b{
+  font-family:var(--font-display);font-size:15.5px;letter-spacing:1px;
+  background:linear-gradient(90deg,#ff4d6a,#ffb545,#f7ff5c,#20e37c,#00e5c7,#7c5cff,#ff4d6a);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:rainbow-shift 6s linear infinite;
+  white-space:nowrap;
+}
+@keyframes rainbow-shift{
+  0%{background-position:0% 50%;}
+  100%{background-position:300% 50%;}
+}
+.brand-text span{font-size:10.5px;color:var(--text-faint);letter-spacing:2px;text-transform:uppercase;}
+
+.nav-group-label{
+  font-size:10.5px;letter-spacing:2px;color:var(--text-faint);
+  text-transform:uppercase;margin:18px 10px 8px;
+}
+.nav{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:10px;cursor:pointer;
+  color:var(--text-dim);font-size:14px;font-weight:500;
+  position:relative;transition:all .18s ease;
+  border:1px solid transparent;
+}
+.nav-item .ico{
+  width:19px;height:19px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+.nav-item:hover{background:var(--bg-panel-2);color:var(--text);}
+.nav-item.active{
+  background:linear-gradient(90deg, rgba(124,92,255,.16), rgba(124,92,255,.02));
+  color:#fff;border-color:rgba(124,92,255,.35);
+}
+.nav-item.active::before{
+  content:'';position:absolute;left:-16px;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;border-radius:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent);
+}
+.nav-item .badge{
+  margin-left:auto;font-family:var(--font-mono);font-size:10.5px;
+  background:rgba(255,77,106,.14);color:var(--danger);
+  border:1px solid rgba(255,77,106,.3);
+  padding:1px 7px;border-radius:20px;
+}
+.nav-item .badge.mono-cyan{background:rgba(0,229,199,.12);color:var(--accent-2);border-color:rgba(0,229,199,.28);}
+.nav-item .badge.mono-warn{background:rgba(255,181,69,.12);color:var(--warn);border-color:rgba(255,181,69,.28);}
+
+.sidebar-foot{
+  margin-top:auto;padding-top:16px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;
+  cursor:pointer;
+  border-radius:10px;
+  padding:10px;
+  transition:background .15s;
+}
+.sidebar-foot:hover{background:var(--bg-panel-2);}
+.avatar-ring{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;color:#07080b;font-size:13px;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.avatar-ring img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.avatar-ring::after{
+  content:'';position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;
+  border-radius:50%;background:#20e37c;border:2px solid var(--bg-panel);
+}
+.foot-text{flex:1;min-width:0;}
+.foot-text b{font-size:13px;display:block;}
+.foot-text span{font-size:11px;color:var(--text-faint);}
+.foot-gear{color:var(--text-faint);flex-shrink:0;display:flex;align-items:center;}
+.sidebar-foot:hover .foot-gear{color:var(--accent-2);}
+
+.main{
+  overflow-y:auto;
+  padding:26px 34px 60px;
+  position:relative;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:26px;
+}
+.topbar h1{
+  font-family:var(--font-display);font-size:23px;letter-spacing:.5px;
+  display:flex;align-items:center;gap:10px;
+}
+.topbar .crumbs{font-size:12px;color:var(--text-faint);margin-top:4px;font-family:var(--font-mono);}
+.live-pill{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--font-mono);font-size:11px;color:var(--accent-2);
+  border:1px solid rgba(0,229,199,.3);background:rgba(0,229,199,.06);
+  padding:6px 12px;border-radius:20px;
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 8px var(--accent-2);animation:blink 1.6s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+.view{display:none;animation:fadeUp .45s ease;}
+.view.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;}
+.stat-card{
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;position:relative;overflow:hidden;
+  transition:transform .25s ease, border-color .25s ease;
+}
+.stat-card:hover{transform:translateY(-3px);border-color:rgba(124,92,255,.4);}
+.stat-card::after{
+  content:'';position:absolute;top:-40%;right:-30%;width:140px;height:140px;
+  background:radial-gradient(circle, rgba(124,92,255,.18), transparent 70%);
+}
+.stat-label{font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.5px;}
+.stat-value{font-family:var(--font-display);font-size:30px;margin-top:8px;font-weight:700;}
+.stat-value.cyan{color:var(--accent-2);}
+.stat-value.danger{color:var(--danger);}
+.stat-value.warn{color:var(--warn);}
+.stat-sub{font-size:11.5px;color:var(--text-dim);margin-top:5px;}
+
+.panel{
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin-bottom:20px;
+}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.panel-head h2{font-family:var(--font-display);font-size:16px;letter-spacing:.5px;display:flex;align-items:center;gap:9px;}
+.panel-head h2 .dash{width:3px;height:16px;background:linear-gradient(180deg,var(--accent),var(--accent-2));border-radius:2px;}
+
+.activity-row{
+  display:flex;align-items:center;gap:14px;padding:12px 6px;
+  border-bottom:1px solid var(--line);font-size:13.5px;
+}
+.activity-row:last-child{border-bottom:none;}
+.dot-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dot-icon.join{background:rgba(0,229,199,.12);color:var(--accent-2);}
+.dot-icon.ban{background:rgba(255,77,106,.12);color:var(--danger);}
+.dot-icon.warn{background:rgba(255,181,69,.12);color:var(--warn);}
+.dot-icon.ok{background:rgba(124,92,255,.14);color:var(--accent);}
+.activity-main b{font-weight:600;}
+.activity-main span{color:var(--text-faint);display:block;font-size:11.5px;margin-top:1px;font-family:var(--font-mono);}
+.activity-time{margin-left:auto;font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+
+.chat-layout{display:grid;grid-template-columns:260px 1fr;gap:18px;height:calc(100vh - 170px);}
+.chat-channels{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px;overflow-y:auto;
+}
+.chan{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;
+  color:var(--text-dim);font-size:13.5px;margin-bottom:3px;transition:.15s;
+}
+.chan:hover{background:var(--bg-panel-2);color:var(--text);}
+.chan.active{background:rgba(124,92,255,.14);color:#fff;}
+.chan .hash{color:var(--text-faint);font-family:var(--font-mono);}
+.chat-window{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:var(--radius);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.chat-window-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+.chat-window-head b{font-family:var(--font-display);font-size:14.5px;}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.msg{display:flex;gap:12px;animation:fadeUp .3s ease;}
+.msg .m-avatar{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
+  font-size:12px;font-weight:700;color:#07080b;
+  overflow:hidden;
+}
+.msg .m-avatar img{width:100%;height:100%;object-fit:cover;}
+.msg .m-body b{font-size:13.5px;margin-right:8px;}
+.msg .m-body .m-time{font-size:10.5px;color:var(--text-faint);font-family:var(--font-mono);}
+.msg .m-body p{font-size:13.5px;color:var(--text-dim);margin-top:3px;line-height:1.5;}
+.msg .m-body p .everyone-tag{
+  color:var(--accent-2);background:rgba(0,229,199,.12);
+  border-radius:4px;padding:0 4px;font-weight:700;
+}
+.chat-input-bar{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;}
+.chat-input-bar input{
+  flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;color:var(--text);font-size:13.5px;outline:none;
+}
+.chat-input-bar input:focus{border-color:var(--accent);}
+.send-btn{
+  background:linear-gradient(135deg,var(--accent),#5a3fe0);border:none;border-radius:10px;
+  padding:0 20px;color:#fff;font-weight:600;cursor:pointer;font-size:13px;
+  transition:transform .15s;
+}
+.send-btn:hover{transform:translateY(-1px);}
+
+.toolbar{display:flex;gap:12px;margin-bottom:18px;align-items:center;}
+.search-box{
+  flex:1;display:flex;align-items:center;gap:10px;
+  background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 16px;
+}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:13.5px;width:100%;}
+.search-box svg{color:var(--text-faint);flex-shrink:0;}
+.btn-primary{
+  background:linear-gradient(135deg,var(--danger),#c22c48);border:none;border-radius:10px;
+  padding:11px 18px;color:#fff;font-weight:600;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;gap:8px;transition:transform .15s, box-shadow .15s;
+  white-space:nowrap;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,77,106,.35);}
+.btn-primary.violet{background:linear-gradient(135deg,var(--accent),#5a3fe0);}
+.btn-primary.violet:hover{box-shadow:0 6px 18px rgba(124,92,255,.35);}
+.btn-primary.cyan-btn{background:linear-gradient(135deg,var(--accent-2),#00a693);}
+.btn-primary.cyan-btn:hover{box-shadow:0 6px 18px rgba(0,229,199,.35);}
+
+.bl-table{width:100%;border-collapse:collapse;}
+.bl-table thead th{
+  text-align:left;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-faint);padding:10px 14px;border-bottom:1px solid var(--line);
+}
+.bl-table tbody tr{
+  border-bottom:1px solid var(--line);transition:background .15s;
+  animation:fadeUp .35s ease backwards;
+}
+.bl-table tbody tr:hover{background:rgba(255,255,255,.02);}
+.bl-table td{padding:13px 14px;font-size:13.5px;}
+.bl-id{font-family:var(--font-mono);color:var(--text);letter-spacing:.4px;}
+.bl-idx{color:var(--text-faint);font-family:var(--font-mono);font-size:12px;}
+.status-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,77,106,.12);color:var(--danger);border:1px solid rgba(255,77,106,.3);
+  padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:600;
+}
+.status-chip::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--danger);}
+.status-chip.clean{background:rgba(32,227,124,.10);color:#20e37c;border-color:rgba(32,227,124,.3);}
+.status-chip.clean::before{background:#20e37c;}
+.row-actions{display:flex;gap:8px;}
+.icon-btn{
+  width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--bg-panel-2);
+  color:var(--text-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;
+}
+.icon-btn:hover{color:var(--accent-2);border-color:var(--accent-2);}
+.icon-btn.del:hover{color:var(--danger);border-color:var(--danger);}
+
+.admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.admin-card{
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;text-align:center;transition:transform .2s ease, border-color .2s ease;
+  position:relative;
+}
+.admin-card:hover{transform:translateY(-4px);border-color:rgba(124,92,255,.4);}
+.admin-avatar{
+  width:64px;height:64px;border-radius:16px;margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
+  font-size:20px;font-weight:700;color:#07080b;
+  overflow:hidden;
+}
+.admin-avatar img{width:100%;height:100%;object-fit:cover;}
+.admin-card b{display:block;font-size:15px;margin-bottom:2px;}
+.admin-card .role{font-size:11.5px;color:var(--accent-2);font-family:var(--font-mono);margin-bottom:10px;display:block;}
+.admin-online{
+  position:absolute;top:16px;right:16px;font-size:10px;font-family:var(--font-mono);
+  display:flex;align-items:center;gap:5px;color:var(--text-faint);
+}
+.admin-online.on{color:#20e37c;}
+.admin-online .d{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.admin-stats-row{display:flex;justify-content:center;gap:16px;margin-top:10px;padding-top:12px;border-top:1px solid var(--line);}
+.admin-stats-row div{font-size:11px;color:var(--text-faint);}
+.admin-stats-row b{display:block;font-size:14px;color:var(--text);font-family:var(--font-mono);}
+
+.announce-composer{
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin-bottom:22px;
+  position:relative;overflow:hidden;
+}
+.announce-composer::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#ff4d6a,#ffb545,#f7ff5c,#20e37c,#00e5c7,#7c5cff,#ff4d6a);
+  background-size:300% 100%;
+  animation:rainbow-shift 6s linear infinite;
+}
+.announce-composer .panel-head{margin-bottom:16px;}
+.announce-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.a-field label{
+  display:block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:7px;
+}
+.a-field input, .a-field select, .a-field textarea{
+  width:100%;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
+  padding:11px 14px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font-body);
+  transition:border-color .15s;
+}
+.a-field textarea{resize:vertical;min-height:90px;font-family:var(--font-body);line-height:1.5;}
+.a-field input:focus, .a-field select:focus, .a-field textarea:focus{border-color:var(--accent);}
+.a-field.full{grid-column:1 / -1;}
+.tag-pick{display:flex;gap:8px;flex-wrap:wrap;}
+.tag-opt{
+  padding:9px 15px;border-radius:20px;border:1px solid var(--line);background:var(--bg-panel-2);
+  color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;
+  display:flex;align-items:center;gap:6px;
+}
+.tag-opt .d{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.tag-opt[data-tag="info"]{color:var(--accent-2);}
+.tag-opt[data-tag="onemli"]{color:var(--warn);}
+.tag-opt[data-tag="kritik"]{color:var(--danger);}
+.tag-opt[data-tag="guncelleme"]{color:var(--accent);}
+.tag-opt.selected{background:rgba(124,92,255,.14);border-color:rgba(124,92,255,.45);color:#fff;}
+.composer-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+
+.announce-feed{display:flex;flex-direction:column;gap:16px;}
+.announce-card{
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 22px;position:relative;overflow:hidden;
+  animation:announceIn .5s cubic-bezier(.2,.8,.25,1) backwards;
+  transition:transform .2s ease, border-color .2s ease;
+}
+.announce-card:hover{transform:translateY(-3px);border-color:rgba(124,92,255,.35);}
+@keyframes announceIn{
+  from{opacity:0;transform:translateY(16px) scale(.98);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+.announce-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+}
+.announce-card.tag-info::before{background:linear-gradient(180deg,var(--accent-2),#00a693);}
+.announce-card.tag-onemli::before{background:linear-gradient(180deg,var(--warn),#c67e00);}
+.announce-card.tag-kritik::before{background:linear-gradient(180deg,var(--danger),#a4132c);}
+.announce-card.tag-guncelleme::before{background:linear-gradient(180deg,var(--accent),#4a2fc7);}
+.announce-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px;}
+.announce-title{font-family:var(--font-display);font-size:16.5px;letter-spacing:.3px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.announce-tag{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  padding:3px 10px;border-radius:20px;border:1px solid;
+}
+.announce-tag.info{color:var(--accent-2);border-color:rgba(0,229,199,.35);background:rgba(0,229,199,.08);}
+.announce-tag.onemli{color:var(--warn);border-color:rgba(255,181,69,.35);background:rgba(255,181,69,.08);}
+.announce-tag.kritik{color:var(--danger);border-color:rgba(255,77,106,.35);background:rgba(255,77,106,.08);}
+.announce-tag.guncelleme{color:var(--accent);border-color:rgba(124,92,255,.35);background:rgba(124,92,255,.08);}
+.announce-meta{font-size:11px;color:var(--text-faint);font-family:var(--font-mono);white-space:nowrap;}
+.announce-body{font-size:13.5px;color:var(--text-dim);line-height:1.65;white-space:pre-wrap;}
+.announce-author{display:flex;align-items:center;gap:9px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
+.announce-author .aa-avatar{
+  width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:10.5px;font-weight:700;color:#07080b;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  overflow:hidden;
+}
+.announce-author .aa-avatar img{width:100%;height:100%;object-fit:cover;}
+.announce-author span{font-size:12px;color:var(--text-faint);}
+.announce-author b{color:var(--text);font-weight:600;}
+.announce-footer-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
+.announce-empty{
+  text-align:center;padding:50px 20px;color:var(--text-faint);font-size:13px;font-family:var(--font-mono);
+}
+
+.modal-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeUp .2s ease;
+}
+.modal-overlay.hidden{display:none;}
+.modal-box{
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:18px;
+  padding:28px 28px 24px;width:420px;position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);
+}
+.modal-box h3{font-family:var(--font-display);font-size:16px;margin-bottom:6px;}
+.modal-box p{font-size:12.5px;color:var(--text-faint);margin-bottom:20px;font-family:var(--font-mono);}
+.modal-box .a-field{margin-bottom:14px;}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
+.btn-ghost{background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 18px;color:var(--text-dim);font-size:13px;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--accent);color:var(--text);}
+
+.settings-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+.settings-avatar-preview{
+  width:72px;height:72px;border-radius:18px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;color:#07080b;font-size:24px;
+  overflow:hidden;border:1px solid var(--line);
+}
+.settings-avatar-preview img{width:100%;height:100%;object-fit:cover;}
+.settings-avatar-actions{display:flex;flex-direction:column;gap:8px;}
+.settings-avatar-actions .btn-ghost, .settings-avatar-actions .btn-primary{padding:9px 14px;font-size:12px;}
+.hidden-file-input{display:none;}
+.settings-hint{font-size:11px;color:var(--text-faint);font-family:var(--font-mono);margin-top:-8px;margin-bottom:14px;}
+
+.toast{
+  position:fixed;bottom:28px;right:28px;z-index:200;
+  background:linear-gradient(135deg,#1a1e28,#12151c);
+  border:1px solid var(--line);border-radius:12px;
+  padding:14px 20px;font-size:13px;font-family:var(--font-mono);
+  display:flex;align-items:center;gap:10px;
+  animation:toastIn .35s cubic-bezier(.2,.8,.25,1);
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  pointer-events:none;
+}
+.toast.hidden{display:none;}
+.toast.ok{border-color:rgba(32,227,124,.35);color:#20e37c;}
+.toast.err{border-color:rgba(255,77,106,.35);color:var(--danger);}
+.toast.everyone{border-color:rgba(0,229,199,.5);color:var(--accent-2);font-size:13.5px;}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.spinner{
+  width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-row{text-align:center;padding:30px;color:var(--text-faint);font-family:var(--font-mono);font-size:13px;}
+
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#242836;border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:#333849;}
+
+#loginOverlay{
+  position:fixed;inset:0;z-index:50;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(124,92,255,.18), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(0,229,199,.12), transparent 60%),
+    linear-gradient(180deg,#07080b, #08090d 60%, #060709);
+  display:flex;align-items:center;justify-content:center;
+}
+#loginOverlay::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse 1200px 800px at 50% 30%, black, transparent 75%);
+}
+.login-card{
+  position:relative;z-index:2;width:380px;
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:18px;
+  padding:36px 34px 30px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);
+  animation:fadeUp .5s ease;
+}
+.login-mark{
+  width:52px;height:52px;border-radius:14px;margin:0 auto 18px;
+  background:conic-gradient(from 220deg, var(--accent), var(--accent-2), var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:19px;color:#07080b;
+  animation:pulse-glow 3.4s ease-in-out infinite;
+}
+.login-card h2{
+  font-family:var(--font-display);font-size:17px;text-align:center;letter-spacing:.5px;margin-bottom:4px;
+  background:linear-gradient(90deg,#ff4d6a,#ffb545,#f7ff5c,#20e37c,#00e5c7,#7c5cff,#ff4d6a);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:rainbow-shift 6s linear infinite;
+}
+.login-card p.sub{text-align:center;font-size:12px;color:var(--text-faint);margin-bottom:26px;font-family:var(--font-mono);}
+.login-field{margin-bottom:16px;}
+.login-field label{
+  display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:7px;
+}
+.login-field input{
+  width:100%;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font-mono);
+  transition:border-color .15s;
+}
+.login-field input:focus{border-color:var(--accent);}
+.login-btn{
+  width:100%;margin-top:6px;
+  background:linear-gradient(135deg,var(--accent),#5a3fe0);border:none;border-radius:10px;
+  padding:13px;color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;letter-spacing:.5px;
+  transition:transform .15s, box-shadow .15s;
+}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(124,92,255,.35);}
+.login-error{
+  margin-top:12px;font-size:12px;color:var(--danger);text-align:center;
+  display:none;font-family:var(--font-mono);
+}
+.login-error.show{display:block;animation:shake .35s ease;}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}
+}
+.shell{display:none;}
+.shell.unlocked{display:grid;}
+
+.msg.everyone-msg .m-body p{color:var(--text);}
+.msg.everyone-msg{
+  background:rgba(0,229,199,.05);
+  border:1px solid rgba(0,229,199,.15);
+  border-radius:10px;
+  padding:8px 10px;
+  margin:-8px -10px;
+}
+
+/* ===== OYUNCU SORGULAMA ===== */
+.query-wrapper{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+.query-search-panel{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);padding:22px;
+}
+.query-search-panel .panel-head{margin-bottom:16px;}
+.query-id-input{
+  display:flex;gap:10px;margin-bottom:14px;
+}
+.query-id-input input{
+  flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font-mono);
+  transition:border-color .15s;letter-spacing:.5px;
+}
+.query-id-input input:focus{border-color:var(--accent);}
+
+.query-result-panel{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);padding:22px;
+  min-height:300px;
+}
+.query-result-panel.highlight{border-color:rgba(124,92,255,.45);}
+.query-result-panel.danger-highlight{border-color:rgba(255,77,106,.45);}
+
+.query-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:220px;gap:12px;color:var(--text-faint);font-family:var(--font-mono);font-size:12.5px;
+  text-align:center;
+}
+.query-empty svg{opacity:.3;}
+
+.player-profile-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--line);}
+.player-big-avatar{
+  width:54px;height:54px;border-radius:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:18px;color:#07080b;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+}
+.player-profile-header .p-name{font-family:var(--font-display);font-size:17px;letter-spacing:.5px;}
+.player-profile-header .p-id{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);margin-top:3px;}
+.player-profile-header .p-status{margin-top:5px;}
+
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.info-row:last-child{border-bottom:none;}
+.info-row .lbl{color:var(--text-faint);font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;}
+.info-row .val{font-family:var(--font-mono);font-size:12.5px;color:var(--text);}
+
+.query-notes-area{
+  margin-top:16px;
+}
+.query-notes-area label{
+  display:block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:7px;
+}
+.query-notes-area textarea{
+  width:100%;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
+  padding:11px 14px;color:var(--text);font-size:13px;outline:none;
+  font-family:var(--font-body);line-height:1.5;resize:vertical;min-height:80px;
+  transition:border-color .15s;
+}
+.query-notes-area textarea:focus{border-color:var(--accent);}
+.query-notes-foot{display:flex;justify-content:flex-end;margin-top:8px;}
+
+/* ===== SUNUCU İSTATİSTİKLERİ ===== */
+.stats-top-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.mini-stat{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;position:relative;overflow:hidden;
+  transition:transform .2s ease, border-color .2s ease;
+}
+.mini-stat:hover{transform:translateY(-2px);}
+.mini-stat::after{
+  content:'';position:absolute;top:-30%;right:-20%;width:100px;height:100px;
+  background:radial-gradient(circle,rgba(124,92,255,.14),transparent 70%);
+}
+.mini-stat .ms-icon{
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;margin-bottom:10px;
+}
+.ms-icon.cyan{background:rgba(0,229,199,.12);color:var(--accent-2);}
+.ms-icon.violet{background:rgba(124,92,255,.12);color:var(--accent);}
+.ms-icon.danger{background:rgba(255,77,106,.12);color:var(--danger);}
+.ms-icon.warn{background:rgba(255,181,69,.12);color:var(--warn);}
+.mini-stat .ms-val{font-family:var(--font-display);font-size:26px;font-weight:700;}
+.mini-stat .ms-lbl{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.mini-stat .ms-delta{font-size:11px;margin-top:5px;}
+.ms-delta.up{color:#20e37c;}
+.ms-delta.down{color:var(--danger);}
+
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;}
+.chart-panel{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;
+}
+.chart-panel .panel-head{margin-bottom:14px;}
+.chart-tabs{display:flex;gap:6px;margin-bottom:18px;}
+.chart-tab{
+  padding:6px 14px;border-radius:8px;font-size:12px;font-family:var(--font-mono);
+  border:1px solid var(--line);background:transparent;color:var(--text-dim);
+  cursor:pointer;transition:.15s;
+}
+.chart-tab.active{background:rgba(124,92,255,.14);border-color:rgba(124,92,255,.4);color:#fff;}
+.chart-tab:hover:not(.active){background:var(--bg-panel-2);color:var(--text);}
+canvas.stat-chart{width:100%!important;max-height:220px;}
+
+.donut-wrapper{display:flex;flex-direction:column;align-items:center;gap:14px;}
+canvas.donut-chart{max-height:180px;max-width:180px;}
+.donut-legend{width:100%;}
+.donut-legend-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;
+}
+.donut-legend-row:last-child{border-bottom:none;}
+.donut-legend-row .dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.donut-legend-row .dl-name{flex:1;margin-left:8px;color:var(--text-dim);}
+.donut-legend-row .dl-val{font-family:var(--font-mono);font-size:11.5px;color:var(--text);}
+
+.log-table{width:100%;border-collapse:collapse;}
+.log-table thead th{
+  text-align:left;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-faint);padding:8px 12px;border-bottom:1px solid var(--line);
+}
+.log-table tbody tr{border-bottom:1px solid var(--line);transition:background .15s;}
+.log-table tbody tr:hover{background:rgba(255,255,255,.02);}
+.log-table td{padding:10px 12px;font-size:12.5px;}
+
+@media(max-width:1000px){
+  .shell{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .admin-grid{grid-template-columns:1fr 1fr;}
+  .chat-layout{grid-template-columns:1fr;}
+  .announce-grid{grid-template-columns:1fr;}
+  .query-wrapper{grid-template-columns:1fr;}
+  .charts-grid{grid-template-columns:1fr;}
+  .stats-top-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="backdrop"></div>
+<div class="scanline"></div>
+<div class="toast hidden" id="toast"></div>
+
+<!-- ADD BLACKLIST MODAL -->
+<div class="modal-overlay hidden" id="blModal">
+  <div class="modal-box">
+    <h3>Blacklist'e Ekle</h3>
+    <p>Discord ID girerek kullanıcıyı yasaklayın</p>
+    <div class="a-field">
+      <label>Discord ID</label>
+      <input type="text" id="blModalId" placeholder="örn: 1234567890123456789" style="font-family:var(--font-mono);">
+    </div>
+    <div class="a-field">
+      <label>Sebep (isteğe bağlı)</label>
+      <input type="text" id="blModalReason" placeholder="Yasak sebebini girin...">
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="blModalClose">İptal</button>
+      <button class="btn-primary" id="blModalAdd">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ekle
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal-box">
+    <h3>Profil Ayarları</h3>
+    <p>Profil fotoğrafını ve görünen adını güncelle</p>
+    <div class="settings-avatar-row">
+      <div class="settings-avatar-preview" id="settingsAvatarPreview">?</div>
+      <div class="settings-avatar-actions">
+        <button class="btn-primary violet" id="settingsUploadBtn" type="button">Fotoğraf Seç</button>
+        <button class="btn-ghost" id="settingsRemoveBtn" type="button">Kaldır</button>
+      </div>
+      <input type="file" id="settingsFileInput" class="hidden-file-input" accept="image/*">
+    </div>
+    <div class="settings-hint">JPG/PNG, maks. 700KB önerilir.</div>
+    <div class="a-field" style="margin-bottom:6px;">
+      <label>Görünen Ad</label>
+      <input type="text" id="settingsDisplayName" placeholder="Görünen adınız">
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="settingsClose">İptal</button>
+      <button class="btn-primary violet" id="settingsSave">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-mark">DD</div>
+    <h2>DALE DAWSON STAFFS PANEL</h2>
+    <p class="sub">Devam etmek için giriş yapın</p>
+    <div class="login-field">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="loginUser" placeholder="Kullanıcı adınızı girin" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <label>Erişim Anahtarı (Key)</label>
+      <input type="text" id="loginKey" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
+    </div>
+    <button class="login-btn" id="loginBtn">GİRİŞ YAP</button>
+    <div class="login-error" id="loginError">Geçersiz kullanıcı adı veya key.</div>
+  </div>
+</div>
+
+<div class="shell" id="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">DD</div>
+      <div class="brand-text">
+        <b>DALE DAWSON</b>
+        <span>Staffs Panel</span>
+      </div>
+    </div>
+
+    <div class="nav-group-label">Genel</div>
+    <ul class="nav">
+      <li class="nav-item active" data-view="dashboard">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg></span>
+        Genel Bakış
+      </li>
+      <li class="nav-item" data-view="stats">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        Sunucu İstatistikleri
+        <span class="badge mono-cyan">YENİ</span>
+      </li>
+      <li class="nav-item" data-view="chat">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        Admin Chat
+        <span class="badge mono-cyan" id="chatBadge">0</span>
+      </li>
+      <li class="nav-item" data-view="announcements">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a2 2 0 0 1-3.2 2.4L6 15"/></svg></span>
+        Duyurular
+        <span class="badge mono-warn" id="announceBadge">0</span>
+      </li>
+    </ul>
+
+    <div class="nav-group-label">Yönetim</div>
+    <ul class="nav">
+      <li class="nav-item" data-view="query">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        Oyuncu Sorgula
+        <span class="badge mono-cyan">YENİ</span>
+      </li>
+      <li class="nav-item" data-view="blacklist">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg></span>
+        Blacklist
+        <span class="badge" id="blBadge">0</span>
+      </li>
+      <li class="nav-item" data-view="admins">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg></span>
+        Adminler
+      </li>
+    </ul>
+
+    <div class="sidebar-foot" id="sidebarFoot">
+      <div class="avatar-ring" id="sidebarAvatar">?</div>
+      <div class="foot-text">
+        <b id="sidebarName">Yükleniyor...</b>
+        <span>Yetki Seviyesi 5</span>
+      </div>
+      <div class="foot-gear" title="Ayarlar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="topbar">
+        <div>
+          <h1>Genel Bakış</h1>
+          <div class="crumbs">DALE DAWSON / Genel Bakış</div>
+        </div>
+        <div class="live-pill"><span class="live-dot"></span> SUNUCU ÇEVRİMİÇİ</div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Aktif Oyuncu</div>
+          <div class="stat-value">248</div>
+          <div class="stat-sub">/ 300 slot</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Kayıtlı Admin</div>
+          <div class="stat-value cyan">2</div>
+          <div class="stat-sub">2 çevrimiçi</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Blacklist</div>
+          <div class="stat-value danger" id="dashBlCount">-</div>
+          <div class="stat-sub">yasaklı kullanıcı</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Duyurular</div>
+          <div class="stat-value warn" id="dashAnnCount">-</div>
+          <div class="stat-sub">toplam yayında</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2><span class="dash"></span>Son Hareketler</h2></div>
+        <div id="activityFeed">
+          <div class="loading-row"><span class="spinner"></span> Yükleniyor...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUNUCU İSTATİSTİKLERİ -->
+    <section class="view" id="view-stats">
+      <div class="topbar">
+        <div>
+          <h1>Sunucu İstatistikleri</h1>
+          <div class="crumbs">DALE DAWSON / Genel / Sunucu İstatistikleri</div>
+        </div>
+        <div class="live-pill"><span class="live-dot"></span> CANLI VERİ</div>
+      </div>
+
+      <div class="stats-top-grid">
+        <div class="mini-stat">
+          <div class="ms-icon cyan">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="ms-val" id="stat-peak">248</div>
+          <div class="ms-lbl">Anlık Oyuncu</div>
+          <div class="ms-delta up" id="stat-peak-d">▲ +12 son saate göre</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-icon violet">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="ms-val" id="stat-today">1,847</div>
+          <div class="ms-lbl">Bugünkü Bağlanma</div>
+          <div class="ms-delta up">▲ +203 dün</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-icon danger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
+          </div>
+          <div class="ms-val" id="stat-bans">—</div>
+          <div class="ms-lbl">Toplam Ban</div>
+          <div class="ms-delta down" id="stat-bans-d">bu hafta 0 yeni</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-icon warn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/></svg>
+          </div>
+          <div class="ms-val" id="stat-anns">—</div>
+          <div class="ms-lbl">Aktif Duyuru</div>
+          <div class="ms-delta up">toplam yayında</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-panel">
+          <div class="panel-head"><h2><span class="dash"></span>Oyuncu Grafiği</h2></div>
+          <div class="chart-tabs">
+            <button class="chart-tab active" data-range="hourly">Saatlik</button>
+            <button class="chart-tab" data-range="daily">Günlük (7g)</button>
+            <button class="chart-tab" data-range="weekly">Haftalık (4h)</button>
+          </div>
+          <canvas class="stat-chart" id="playerChart"></canvas>
+        </div>
+        <div class="chart-panel">
+          <div class="panel-head"><h2><span class="dash"></span>Ban Dağılımı</h2></div>
+          <div class="donut-wrapper">
+            <canvas class="donut-chart" id="banDonut"></canvas>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2><span class="dash"></span>Son Admin Aktiviteleri</h2></div>
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Eylem</th>
+              <th>Admin</th>
+              <th>Detay</th>
+              <th>Zaman</th>
+            </tr>
+          </thead>
+          <tbody id="statsActivityLog">
+            <tr><td colspan="4" class="loading-row"><span class="spinner"></span> Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="view" id="view-chat">
+      <div class="topbar">
+        <div>
+          <h1>Admin Chat</h1>
+          <div class="crumbs">DALE DAWSON / Yönetim / Admin Chat</div>
+        </div>
+        <div class="live-pill"><span class="live-dot"></span> CANLI</div>
+      </div>
+      <div class="chat-layout">
+        <div class="chat-channels">
+          <div class="nav-group-label" style="margin-top:0;">Kanallar</div>
+          <div class="chan active" data-channel="genel-yonetim"><span class="hash">#</span> genel-yönetim</div>
+          <div class="chan" data-channel="rapor-inceleme"><span class="hash">#</span> rapor-inceleme</div>
+          <div class="chan" data-channel="blacklist-log"><span class="hash">#</span> blacklist-log</div>
+          <div class="chan" data-channel="duyurular"><span class="hash">#</span> duyurular</div>
+        </div>
+        <div class="chat-window">
+          <div class="chat-window-head">
+            <b id="chatChannelName"># genel-yönetim</b>
+            <span style="margin-left:auto;font-size:11px;color:var(--text-faint);font-family:var(--font-mono);">@everyone yazarak herkese bildirim gönder</span>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="loading-row"><span class="spinner"></span> Mesajlar yükleniyor...</div>
+          </div>
+          <div class="chat-input-bar">
+            <input type="text" id="chatInput" placeholder="Mesaj yaz... (@everyone herkese bildirim gönderir)">
+            <button class="send-btn" id="chatSendBtn">Gönder</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DUYURULAR -->
+    <section class="view" id="view-announcements">
+      <div class="topbar">
+        <div>
+          <h1>Duyurular</h1>
+          <div class="crumbs">DALE DAWSON / Genel / Duyurular</div>
+        </div>
+        <div class="live-pill" style="color:var(--warn);border-color:rgba(255,181,69,.3);background:rgba(255,181,69,.06);">
+          <span class="live-dot" style="background:var(--warn);box-shadow:0 0 8px var(--warn);"></span>
+          <span id="announceCountLabel">0 DUYURU</span>
+        </div>
+      </div>
+      <div class="announce-composer">
+        <div class="panel-head"><h2><span class="dash"></span>Yeni Duyuru Oluştur</h2></div>
+        <div class="announce-grid">
+          <div class="a-field full">
+            <label>Başlık</label>
+            <input type="text" id="annTitle" placeholder="Duyuru başlığını girin...">
+          </div>
+          <div class="a-field full">
+            <label>İçerik</label>
+            <textarea id="annBody" placeholder="Duyuru metnini yazın..."></textarea>
+          </div>
+          <div class="a-field full">
+            <label>Etiket</label>
+            <div class="tag-pick" id="annTagPick">
+              <div class="tag-opt selected" data-tag="info"><span class="d"></span>Bilgi</div>
+              <div class="tag-opt" data-tag="onemli"><span class="d"></span>Önemli</div>
+              <div class="tag-opt" data-tag="kritik"><span class="d"></span>Kritik</div>
+              <div class="tag-opt" data-tag="guncelleme"><span class="d"></span>Güncelleme</div>
+            </div>
+          </div>
+        </div>
+        <div class="composer-foot">
+          <button class="btn-primary violet" id="annPublishBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Yayınla
+          </button>
+        </div>
+      </div>
+      <div class="announce-feed" id="announceFeed">
+        <div class="loading-row"><span class="spinner"></span> Duyurular yükleniyor...</div>
+      </div>
+    </section>
+
+    <!-- OYUNCU SORGULA -->
+    <section class="view" id="view-query">
+      <div class="topbar">
+        <div>
+          <h1>Oyuncu Sorgula</h1>
+          <div class="crumbs">DALE DAWSON / Yönetim / Oyuncu Sorgula</div>
+        </div>
+        <div class="live-pill" style="color:var(--accent);border-color:rgba(124,92,255,.3);background:rgba(124,92,255,.06);">
+          <span class="live-dot" style="background:var(--accent);box-shadow:0 0 8px var(--accent);"></span>
+          FİRESTORE CANLI
+        </div>
+      </div>
+
+      <div class="query-wrapper">
+        <div class="query-search-panel">
+          <div class="panel-head"><h2><span class="dash"></span>Discord ID ile Sorgula</h2></div>
+          <div class="query-id-input">
+            <input type="text" id="queryInput" placeholder="Discord ID girin (17-20 hane)..." maxlength="20">
+            <button class="btn-primary violet" id="queryBtn" style="white-space:nowrap;padding:0 18px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Sorgula
+            </button>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);margin-bottom:20px;">
+            Blacklist durumu, admin notları ve kayıt bilgisi görüntülenir.
+          </div>
+
+          <div style="border-top:1px solid var(--line);padding-top:18px;">
+            <div style="font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;">Son Sorgular</div>
+            <div id="recentQueries">
+              <div style="font-size:12px;color:var(--text-faint);font-family:var(--font-mono);">Henüz sorgu yapılmadı.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="query-result-panel" id="queryResultPanel">
+          <div class="query-empty">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>Discord ID girerek<br>oyuncu bilgisini sorgulayın</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLACKLIST -->
+    <section class="view" id="view-blacklist">
+      <div class="topbar">
+        <div>
+          <h1>Yasaklı Kullanıcılar</h1>
+          <div class="crumbs">DALE DAWSON / Yönetim / Blacklist</div>
+        </div>
+        <div class="live-pill" style="color:var(--danger);border-color:rgba(255,77,106,.3);background:rgba(255,77,106,.06);">
+          <span class="live-dot" style="background:var(--danger);box-shadow:0 0 8px var(--danger);"></span>
+          <span id="blCountLabel">0 KAYIT</span>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="blSearch" placeholder="Discord ID ile ara...">
+        </div>
+        <button class="btn-primary" id="blAddBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Yeni Ekle
+        </button>
+      </div>
+      <div class="panel" style="padding:8px 22px 18px;">
+        <table class="bl-table">
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Discord ID</th>
+              <th>Sebep</th>
+              <th>Durum</th>
+              <th>Eklenme</th>
+              <th>Ekleyen</th>
+              <th style="text-align:right;">İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="blacklistBody">
+            <tr><td colspan="7" class="loading-row"><span class="spinner"></span> Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ADMINLER -->
+    <section class="view" id="view-admins">
+      <div class="topbar">
+        <div>
+          <h1>Adminler</h1>
+          <div class="crumbs">DALE DAWSON / Yönetim / Adminler</div>
+        </div>
+        <div class="live-pill"><span class="live-dot"></span> 2 / 2 ÇEVRİMİÇİ</div>
+      </div>
+      <div class="admin-grid" style="grid-template-columns:repeat(2,minmax(0,320px));justify-content:center;">
+        <div class="admin-card">
+          <div class="admin-online on"><span class="d"></span>ÇEVRİMİÇİ</div>
+          <div class="admin-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent-2));">OA</div>
+          <b>0nlyany_</b>
+          <span class="role">OWNER · KURUCU</span>
+          <div class="admin-stats-row">
+            <div><b>∞</b>Yetki</div>
+            <div><b>100%</b>Onay</div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-online on"><span class="d"></span>ÇEVRİMİÇİ</div>
+          <div class="admin-avatar" style="background:linear-gradient(135deg,#ff8a5c,#ff4d6a);">M1</div>
+          <b>mace1n</b>
+          <span class="role">OWNER · KURUCU</span>
+          <div class="admin-stats-row">
+            <div><b>∞</b>Yetki</div>
+            <div><b>100%</b>Onay</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc, doc, setDoc, getDoc,
+  onSnapshot, serverTimestamp, query, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+let db;
+let firebaseInitialized = false;
+
+async function initFirebase(config) {
+  if (firebaseInitialized) return;
+  const app = initializeApp(config);
+  db = getFirestore(app);
+  firebaseInitialized = true;
+}
+
+setupApp();
+
+function setupApp() {
+
+async function sendWebhookLog({ title, description, color = 0x7c5cff, fields = [] }) {
+  try {
+    await fetch('/.netlify/functions/discord-log', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: "DALE DAWSON Panel Log",
+        embeds: [{ title, description, color, fields, timestamp: new Date().toISOString(), footer: { text: "Dale Dawson Staffs Panel" } }]
+      })
+    });
+  } catch (e) { console.error("webhook log err", e); }
+}
+
+let currentUser = "";
+let currentUserPhoto = "";
+let currentUserDisplayName = "";
+let currentChannel = "genel-yonetim";
+let blUnsubscribe = null;
+let annUnsubscribe = null;
+let chatUnsubscribe = null;
+let profilesUnsubscribe = null;
+let blFilter = "";
+let blAllDocs = [];
+let userProfiles = {};
+let recentQueryList = [];
+
+// Chart instances
+let playerChartInstance = null;
+let banDonutInstance = null;
+let currentChartRange = "hourly";
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function showToast(msg, type = "ok") {
+  const t = document.getElementById('toast');
+  t.className = `toast ${type}`;
+  t.textContent = type === "ok" ? "✓  " + msg : type === "everyone" ? msg : "✕  " + msg;
+  t.classList.remove('hidden');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.add('hidden'), 4000);
+}
+
+function formatDate(ts) {
+  if (!ts) return "—";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('tr-TR') + " " + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function avatarColor(name) {
+  const colors = [
+    "linear-gradient(135deg,#7c5cff,#5a3fe0)",
+    "linear-gradient(135deg,#00e5c7,#00a693)",
+    "linear-gradient(135deg,#ff8a5c,#ff4d6a)",
+    "linear-gradient(135deg,#ffb545,#c67e00)",
+    "linear-gradient(135deg,#5cffb0,#00c2a8)"
+  ];
+  let hash = 0;
+  for (let c of (name || "?")) hash += c.charCodeAt(0);
+  return colors[hash % colors.length];
+}
+
+function avatarInner(rawName) {
+  const profile = userProfiles[rawName];
+  const initials = (profile?.displayName || rawName || "?").substring(0, 2).toUpperCase();
+  if (profile?.photo) return `<img src="${profile.photo}" alt="">`;
+  return initials;
+}
+
+function displayNameOf(rawName) {
+  return userProfiles[rawName]?.displayName || rawName || "";
+}
+
+// ========== AUDIO ==========
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+function warmUpAudio() {
+  try { const ctx = getAudioCtx(); if (ctx.state === 'suspended') ctx.resume(); } catch(e) {}
+}
+document.addEventListener('click', warmUpAudio, { once: false });
+document.addEventListener('keydown', warmUpAudio, { once: false });
+
+function playNotificationSound() {
+  try {
+    const ctx = getAudioCtx();
+    const doPlay = () => {
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.6, ctx.currentTime);
+      master.connect(ctx.destination);
+      const notes = [
+        { freq: 1318, start: 0.00, dur: 0.45, type: 'sine', vol: 0.9 },
+        { freq: 1760, start: 0.00, dur: 0.45, type: 'triangle', vol: 0.4 },
+        { freq: 1174, start: 0.22, dur: 0.50, type: 'sine', vol: 0.8 },
+        { freq: 988,  start: 0.50, dur: 0.55, type: 'sine', vol: 0.75 },
+      ];
+      notes.forEach(({ freq, start, dur, type, vol }) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(master);
+        o.type = type;
+        o.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        g.gain.setValueAtTime(0, ctx.currentTime + start);
+        g.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+        o.start(ctx.currentTime + start);
+        o.stop(ctx.currentTime + start + dur + 0.05);
+      });
+      master.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+    };
+    if (ctx.state === 'suspended') ctx.resume().then(doPlay); else doPlay();
+  } catch(e) {}
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function showBrowserNotification(author, text) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const displayName = displayNameOf(author) || author;
+  try { new Notification(`📢 @everyone — ${displayName}`, { body: text.replace(/@everyone/g, '@everyone'), icon: '/favicon.ico', tag: 'everyone-' + Date.now() }); } catch(e) {}
+}
+
+// ========== PROFILES ==========
+function listenProfiles() {
+  if (profilesUnsubscribe) profilesUnsubscribe();
+  profilesUnsubscribe = onSnapshot(collection(db, "user_profiles"), snap => {
+    userProfiles = {};
+    snap.docs.forEach(d => { userProfiles[d.id] = d.data(); });
+    refreshSidebarAvatar();
+    renderBlacklist();
+    if (typeof window._rerenderChat === 'function') window._rerenderChat();
+  }, err => console.error("profiles err", err));
+}
+
+function refreshSidebarAvatar() {
+  const p = userProfiles[currentUser];
+  currentUserPhoto = p?.photo || "";
+  currentUserDisplayName = p?.displayName || currentUser;
+  const av = document.getElementById('sidebarAvatar');
+  av.innerHTML = currentUserPhoto ? `<img src="${currentUserPhoto}" alt="">` : currentUser.substring(0, 2).toUpperCase();
+  document.getElementById('sidebarName').textContent = currentUserDisplayName;
+}
+
+// ========== LOGIN ==========
+const loginBtn = document.getElementById('loginBtn');
+const loginUser = document.getElementById('loginUser');
+const loginKey = document.getElementById('loginKey');
+const loginError = document.getElementById('loginError');
+const loginOverlay = document.getElementById('loginOverlay');
+const shell = document.getElementById('shell');
+
+async function tryLogin() {
+  const user = loginUser.value.trim();
+  const key = loginKey.value.trim();
+  if (!user || !key) {
+    loginError.textContent = "Kullanıcı adı ve key gerekli.";
+    loginError.classList.remove('show'); void loginError.offsetWidth; loginError.classList.add('show');
+    return;
+  }
+  loginBtn.disabled = true;
+  loginBtn.textContent = "KONTROL EDİLİYOR...";
+  try {
+    const res = await fetch('/.netlify/functions/verify-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, key })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      loginError.textContent = data.message || "Geçersiz kullanıcı adı veya key.";
+      loginError.classList.remove('show'); void loginError.offsetWidth; loginError.classList.add('show');
+      loginBtn.disabled = false;
+      loginBtn.textContent = "GİRİŞ YAP";
+      return;
+    }
+    await initFirebase(data.firebaseConfig);
+    loginOverlay.style.transition = 'opacity .35s ease';
+    loginOverlay.style.opacity = '0';
+    setTimeout(() => {
+      loginOverlay.style.display = 'none';
+      shell.classList.add('unlocked');
+    }, 350);
+    currentUser = data.username || user;
+    document.getElementById('sidebarName').textContent = currentUser;
+    document.getElementById('sidebarAvatar').textContent = currentUser.substring(0, 2).toUpperCase();
+    initFirestoreListeners();
+    logActivity("join", `${user} panele giriş yaptı`);
+    sendWebhookLog({ title: "🟢 Panele Giriş Yapıldı", description: `**${user}** panele giriş yaptı.`, color: 0x00e5c7 });
+  } catch (e) {
+    loginError.textContent = "Sunucu bağlantı hatası. Tekrar deneyin.";
+    loginError.classList.remove('show'); void loginError.offsetWidth; loginError.classList.add('show');
+    loginBtn.disabled = false;
+    loginBtn.textContent = "GİRİŞ YAP";
+  }
+}
+loginBtn.addEventListener('click', tryLogin);
+loginKey.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+loginUser.addEventListener('keydown', e => { if (e.key === 'Enter') loginKey.focus(); });
+
+// ========== NAVIGATION ==========
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + item.dataset.view).classList.add('active');
+    if (item.dataset.view === 'stats') {
+      setTimeout(() => initCharts(), 100);
+    }
+  });
+});
+
+// ========== SETTINGS MODAL ==========
+const settingsModal = document.getElementById('settingsModal');
+const settingsAvatarPreview = document.getElementById('settingsAvatarPreview');
+const settingsFileInput = document.getElementById('settingsFileInput');
+const settingsDisplayName = document.getElementById('settingsDisplayName');
+let pendingPhotoDataUrl = null;
+let pendingPhotoRemoved = false;
+
+function openSettingsModal() {
+  pendingPhotoDataUrl = null;
+  pendingPhotoRemoved = false;
+  const existingPhoto = userProfiles[currentUser]?.photo || "";
+  settingsAvatarPreview.innerHTML = existingPhoto ? `<img src="${existingPhoto}" alt="">` : currentUser.substring(0, 2).toUpperCase();
+  settingsDisplayName.value = userProfiles[currentUser]?.displayName || currentUser;
+  settingsModal.classList.remove('hidden');
+}
+document.getElementById('sidebarFoot').addEventListener('click', openSettingsModal);
+document.getElementById('settingsClose').addEventListener('click', () => settingsModal.classList.add('hidden'));
+document.getElementById('settingsUploadBtn').addEventListener('click', () => settingsFileInput.click());
+
+settingsFileInput.addEventListener('change', () => {
+  const file = settingsFileInput.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast("Lütfen bir resim dosyası seçin.", "err"); return; }
+  if (file.size > 1.5 * 1024 * 1024) { showToast("Dosya çok büyük (maks. ~1.5MB).", "err"); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 220;
+      let { width, height } = img;
+      if (width > height) { if (width > maxDim) { height *= maxDim / width; width = maxDim; } }
+      else { if (height > maxDim) { width *= maxDim / height; height = maxDim; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      pendingPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      pendingPhotoRemoved = false;
+      settingsAvatarPreview.innerHTML = `<img src="${pendingPhotoDataUrl}" alt="">`;
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('settingsRemoveBtn').addEventListener('click', () => {
+  pendingPhotoDataUrl = null;
+  pendingPhotoRemoved = true;
+  settingsAvatarPreview.innerHTML = currentUser.substring(0, 2).toUpperCase();
+});
+
+document.getElementById('settingsSave').addEventListener('click', async () => {
+  const displayName = settingsDisplayName.value.trim() || currentUser;
+  const existing = userProfiles[currentUser] || {};
+  let photo = existing.photo || "";
+  if (pendingPhotoRemoved) photo = "";
+  if (pendingPhotoDataUrl) photo = pendingPhotoDataUrl;
+  try {
+    await setDoc(doc(db, "user_profiles", currentUser), { displayName, photo, updatedAt: serverTimestamp() }, { merge: true });
+    settingsModal.classList.add('hidden');
+    sendWebhookLog({ title: "👤 Profil Güncellendi", description: `**${currentUser}** profilini güncelledi.`, color: 0x00e5c7, fields: [{ name: "Görünen Ad", value: displayName, inline: true }] });
+    showToast("Profil güncellendi!");
+  } catch (e) { showToast("Kaydedilemedi: " + e.message, "err"); }
+});
+
+// ========== ACTIVITY LOG ==========
+async function logActivity(type, text) {
+  try { await addDoc(collection(db, "activity"), { type, text, ts: serverTimestamp() }); }
+  catch (e) { console.error("activity log err", e); }
+}
+
+function listenActivity() {
+  onSnapshot(collection(db, "activity"), snap => {
+    const feed = document.getElementById('activityFeed');
+    if (snap.empty) { feed.innerHTML = '<div class="loading-row">Henüz hareket yok.</div>'; return; }
+    const icons = { join: { cls: "join", ico: "✓" }, ban: { cls: "ban", ico: "⛔" }, warn: { cls: "warn", ico: "!" }, ok: { cls: "ok", ico: "◆" } };
+    const sorted = snap.docs.map(d => d.data()).sort((a,b) => (b.ts?.seconds||0)-(a.ts?.seconds||0)).slice(0, 8);
+    feed.innerHTML = sorted.map(a => {
+      const ic = icons[a.type] || icons.ok;
+      return `<div class="activity-row"><div class="dot-icon ${ic.cls}">${ic.ico}</div><div class="activity-main"><b>${escapeHtml(a.text)}</b><span>${a.ts ? formatDate(a.ts) : "Az önce"}</span></div></div>`;
+    }).join('');
+
+    // Stats sayfasındaki log tablosunu da güncelle
+    const logBody = document.getElementById('statsActivityLog');
+    if (logBody) {
+      const actionLabels = { join: "Giriş", ban: "Yasak", warn: "Uyarı", ok: "İşlem" };
+      if (!sorted.length) { logBody.innerHTML = '<tr><td colspan="4" class="loading-row">Henüz kayıt yok.</td></tr>'; return; }
+      logBody.innerHTML = sorted.map(a => `
+        <tr>
+          <td><span class="dot-icon ${a.type || 'ok'}" style="width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">${icons[a.type]?.ico || '◆'}</span></td>
+          <td style="color:var(--text-faint);font-family:var(--font-mono);font-size:12px;">${escapeHtml(currentUser)}</td>
+          <td>${escapeHtml(a.text)}</td>
+          <td style="color:var(--text-faint);font-family:var(--font-mono);font-size:11px;">${a.ts ? formatDate(a.ts) : "Az önce"}</td>
+        </tr>`).join('');
+    }
+  }, err => console.error("activity err", err));
+}
+
+// ========== BLACKLIST ==========
+function listenBlacklist() {
+  if (blUnsubscribe) blUnsubscribe();
+  blUnsubscribe = onSnapshot(collection(db, "blacklist"), snap => {
+    blAllDocs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.ts?.seconds||0)-(a.ts?.seconds||0));
+    const count = blAllDocs.length;
+    document.getElementById('blBadge').textContent = count;
+    document.getElementById('blCountLabel').textContent = count + " KAYIT";
+    document.getElementById('dashBlCount').textContent = count;
+    document.getElementById('stat-bans').textContent = count;
+    renderBlacklist();
+    updateBanDonut();
+  }, err => console.error("bl err", err));
+}
+
+function renderBlacklist() {
+  const body = document.getElementById('blacklistBody');
+  const filtered = blFilter ? blAllDocs.filter(x => (x.discordId || "").includes(blFilter)) : blAllDocs;
+  if (!filtered.length) {
+    body.innerHTML = `<tr><td colspan="7" class="loading-row">${blFilter ? "Sonuç bulunamadı." : "Henüz kayıt yok."}</td></tr>`;
+    return;
+  }
+  body.innerHTML = filtered.map((x, i) => `
+    <tr style="animation-delay:${i * 0.04}s">
+      <td class="bl-idx">${String(i + 1).padStart(2, '0')}</td>
+      <td class="bl-id">${escapeHtml(x.discordId || "")}</td>
+      <td style="color:var(--text-dim);font-size:12.5px;">${escapeHtml(x.reason || "—")}</td>
+      <td><span class="status-chip">Yasaklı</span></td>
+      <td class="bl-idx">${x.ts ? formatDate(x.ts) : "—"}</td>
+      <td class="bl-idx">${escapeHtml(displayNameOf(x.addedBy) || "—")}</td>
+      <td>
+        <div class="row-actions" style="justify-content:flex-end;">
+          <div class="icon-btn" title="Kopyala" onclick="navigator.clipboard.writeText('${escapeHtml(x.discordId || '')}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </div>
+          <div class="icon-btn del" title="Sil" onclick="window._deleteBlEntry('${x.id}','${escapeHtml(x.discordId || '')}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </div>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+window._deleteBlEntry = async (docId, discordId) => {
+  if (!confirm(`"${discordId}" kişisini blacklistten çıkarmak istediğinize emin misiniz?`)) return;
+  try {
+    await deleteDoc(doc(db, "blacklist", docId));
+    logActivity("ok", `${discordId} blacklistten çıkarıldı (${currentUser})`);
+    sendWebhookLog({ title: "✅ Blacklistten Çıkarıldı", description: `**${discordId}** kullanıcısı blacklistten çıkarıldı.`, color: 0x20e37c, fields: [{ name: "Çıkaran", value: currentUser, inline: true }] });
+    showToast("Kayıt silindi.");
+  } catch (e) { showToast("Silme başarısız: " + e.message, "err"); }
+};
+
+document.getElementById('blSearch').addEventListener('input', e => { blFilter = e.target.value.trim(); renderBlacklist(); });
+
+document.getElementById('blAddBtn').addEventListener('click', () => {
+  document.getElementById('blModal').classList.remove('hidden');
+  document.getElementById('blModalId').focus();
+});
+document.getElementById('blModalClose').addEventListener('click', () => document.getElementById('blModal').classList.add('hidden'));
+document.getElementById('blModalAdd').addEventListener('click', async () => {
+  const id = document.getElementById('blModalId').value.trim();
+  const reason = document.getElementById('blModalReason').value.trim();
+  if (!id) { showToast("Discord ID boş olamaz.", "err"); return; }
+  if (!/^\d{17,20}$/.test(id)) { showToast("Geçersiz Discord ID formatı.", "err"); return; }
+  if (blAllDocs.find(x => x.discordId === id)) { showToast("Bu ID zaten listede.", "err"); return; }
+  try {
+    await addDoc(collection(db, "blacklist"), { discordId: id, reason: reason || "", addedBy: currentUser, ts: serverTimestamp() });
+    logActivity("ban", `${id} blackliste eklendi (${currentUser})`);
+    sendWebhookLog({ title: "⛔ Blackliste Eklendi", description: `**${id}** kullanıcısı blackliste eklendi.`, color: 0xff4d6a, fields: [{ name: "Sebep", value: reason || "Belirtilmedi" }, { name: "Ekleyen", value: currentUser, inline: true }] });
+    showToast("Blackliste eklendi!");
+    document.getElementById('blModalId').value = "";
+    document.getElementById('blModalReason').value = "";
+    document.getElementById('blModal').classList.add('hidden');
+  } catch (e) { showToast("Ekleme başarısız: " + e.message, "err"); }
+});
+
+// ========== ANNOUNCEMENTS ==========
+const tagLabels = { info: "Bilgi", onemli: "Önemli", kritik: "Kritik", guncelleme: "Güncelleme" };
+let selectedTag = "info";
+
+document.getElementById('annTagPick').addEventListener('click', e => {
+  const opt = e.target.closest('.tag-opt');
+  if (!opt) return;
+  document.querySelectorAll('.tag-opt').forEach(o => o.classList.remove('selected'));
+  opt.classList.add('selected');
+  selectedTag = opt.dataset.tag;
+});
+
+function listenAnnouncements() {
+  if (annUnsubscribe) annUnsubscribe();
+  annUnsubscribe = onSnapshot(collection(db, "announcements"), snap => {
+    const count = snap.size;
+    document.getElementById('announceBadge').textContent = count;
+    document.getElementById('announceCountLabel').textContent = count + " DUYURU";
+    document.getElementById('dashAnnCount').textContent = count;
+    document.getElementById('stat-anns').textContent = count;
+    const feed = document.getElementById('announceFeed');
+    if (snap.empty) { feed.innerHTML = `<div class="announce-empty">Henüz duyuru yok. Yukarıdan ilk duyurunu oluştur.</div>`; return; }
+    feed.innerHTML = "";
+    [...snap.docs].sort((a,b) => (b.data().ts?.seconds||0)-(a.data().ts?.seconds||0)).forEach((d, idx) => {
+      const a = d.data();
+      const card = document.createElement('div');
+      card.className = `announce-card tag-${a.tag}`;
+      card.style.animationDelay = (idx * 0.06) + "s";
+      card.innerHTML = `
+        <div class="announce-head">
+          <div class="announce-title">${escapeHtml(a.title)} <span class="announce-tag ${a.tag}">${tagLabels[a.tag] || a.tag}</span></div>
+          <div class="announce-meta">${a.ts ? formatDate(a.ts) : "Az önce"}</div>
+        </div>
+        <div class="announce-body">${escapeHtml(a.body)}</div>
+        <div class="announce-footer-row">
+          <div class="announce-author">
+            <div class="aa-avatar">${avatarInner(a.author)}</div>
+            <span><b>${escapeHtml(displayNameOf(a.author))}</b> tarafından yayınlandı</span>
+          </div>
+          <div class="icon-btn del" title="Duyuruyu Sil" onclick="window._deleteAnnouncement('${d.id}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </div>
+        </div>`;
+      feed.appendChild(card);
+    });
+  }, err => console.error("ann err", err));
+}
+
+window._deleteAnnouncement = async (docId) => {
+  if (!confirm("Bu duyuruyu silmek istediğinize emin misiniz?")) return;
+  try {
+    await deleteDoc(doc(db, "announcements", docId));
+    logActivity("ok", `Duyuru silindi (${currentUser})`);
+    sendWebhookLog({ title: "🗑️ Duyuru Silindi", description: `Bir duyuru silindi.`, color: 0xffb545, fields: [{ name: "Silen", value: currentUser, inline: true }] });
+    showToast("Duyuru silindi.");
+  } catch (e) { showToast("Silme başarısız: " + e.message, "err"); }
+};
+
+document.getElementById('annPublishBtn').addEventListener('click', async () => {
+  const titleEl = document.getElementById('annTitle');
+  const bodyEl = document.getElementById('annBody');
+  const title = titleEl.value.trim();
+  const body = bodyEl.value.trim();
+  if (!title || !body) {
+    if (!title) titleEl.style.borderColor = 'var(--danger)';
+    if (!body) bodyEl.style.borderColor = 'var(--danger)';
+    setTimeout(() => { titleEl.style.borderColor = ''; bodyEl.style.borderColor = ''; }, 900);
+    return;
+  }
+  try {
+    await addDoc(collection(db, "announcements"), { title, body, tag: selectedTag, author: currentUser, ts: serverTimestamp() });
+    logActivity("ok", `Yeni duyuru: "${title}" (${currentUser})`);
+    sendWebhookLog({ title: "📢 Yeni Duyuru Yayınlandı", description: `**${title}**\n\n${body}`, color: 0x7c5cff, fields: [{ name: "Etiket", value: tagLabels[selectedTag] || selectedTag, inline: true }, { name: "Yayınlayan", value: currentUser, inline: true }] });
+    showToast("Duyuru yayınlandı!");
+    titleEl.value = ""; bodyEl.value = "";
+  } catch (e) { showToast("Yayınlama başarısız: " + e.message, "err"); }
+});
+
+// ========== CHAT ==========
+let lastChatDocs = [];
+let lastKnownMsgCount = 0;
+let chatInitialized = false;
+
+function formatMessageText(text) {
+  return escapeHtml(text).replace(/@everyone/g, '<span class="everyone-tag">@everyone</span>');
+}
+
+function renderChatMessages() {
+  const messagesEl = document.getElementById('chatMessages');
+  if (!lastChatDocs.length) {
+    messagesEl.innerHTML = '<div class="loading-row">Bu kanalda henüz mesaj yok.</div>';
+    return;
+  }
+  messagesEl.innerHTML = "";
+  lastChatDocs.forEach(m => {
+    const isEveryone = m.everyone === true;
+    const div = document.createElement('div');
+    div.className = "msg" + (isEveryone ? " everyone-msg" : "");
+    div.innerHTML = `
+      <div class="m-avatar" style="background:${avatarColor(m.author)}">${avatarInner(m.author)}</div>
+      <div class="m-body">
+        <b>${escapeHtml(displayNameOf(m.author))}</b>
+        <span class="m-time">${m.ts ? formatDate(m.ts) : "Az önce"}</span>
+        <p>${formatMessageText(m.text || "")}</p>
+      </div>`;
+    messagesEl.appendChild(div);
+  });
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+window._rerenderChat = renderChatMessages;
+
+function listenChat(channel) {
+  if (chatUnsubscribe) chatUnsubscribe();
+  chatInitialized = false;
+  lastKnownMsgCount = 0;
+  const messagesEl = document.getElementById('chatMessages');
+  messagesEl.innerHTML = '<div class="loading-row"><span class="spinner"></span> Yükleniyor...</div>';
+  requestNotificationPermission();
+
+  chatUnsubscribe = onSnapshot(collection(db, `chat_${channel}`), snap => {
+    const allDocs = [...snap.docs].map(d => d.data()).sort((a,b) => (a.ts?.seconds||0)-(b.ts?.seconds||0));
+    if (!chatInitialized) {
+      lastKnownMsgCount = allDocs.length;
+      chatInitialized = true;
+      lastChatDocs = allDocs;
+      renderChatMessages();
+      document.getElementById('chatBadge').textContent = snap.size;
+      return;
+    }
+    if (allDocs.length > lastKnownMsgCount) {
+      const newMessages = allDocs.slice(lastKnownMsgCount);
+      newMessages.forEach(msg => {
+        if (msg.author !== currentUser && msg.everyone === true) {
+          playNotificationSound();
+          showBrowserNotification(msg.author, msg.text);
+          const senderName = displayNameOf(msg.author) || msg.author;
+          showToast(`📢 ${senderName} @everyone yazdı!`, "everyone");
+        }
+      });
+    }
+    lastKnownMsgCount = allDocs.length;
+    lastChatDocs = allDocs;
+    renderChatMessages();
+    document.getElementById('chatBadge').textContent = snap.size;
+  }, err => console.error("chat err", err));
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  const isEveryone = text.includes('@everyone');
+  try {
+    await addDoc(collection(db, `chat_${currentChannel}`), { text, author: currentUser, ts: serverTimestamp(), everyone: isEveryone });
+    if (isEveryone) {
+      logActivity("warn", `${currentUser} #${currentChannel} kanalında @everyone kullandı`);
+      sendWebhookLog({ title: `📢 @everyone — #${currentChannel}`, description: text, color: 0xff4d6a, fields: [{ name: "Gönderen", value: currentUser, inline: true }] });
+    } else {
+      sendWebhookLog({ title: `💬 #${currentChannel}`, description: text, color: 0x5a3fe0, fields: [{ name: "Gönderen", value: currentUser, inline: true }] });
+    }
+  } catch (e) { showToast("Mesaj gönderilemedi: " + e.message, "err"); }
+}
+
+document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
+document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
+
+document.querySelectorAll('.chan[data-channel]').forEach(ch => {
+  ch.addEventListener('click', () => {
+    document.querySelectorAll('.chan').forEach(c => c.classList.remove('active'));
+    ch.classList.add('active');
+    currentChannel = ch.dataset.channel;
+    document.getElementById('chatChannelName').textContent = '# ' + ch.dataset.channel;
+    listenChat(currentChannel);
+  });
+});
+
+// ===== OYUNCU SORGULAMA =====
+function addRecentQuery(id) {
+  recentQueryList = recentQueryList.filter(x => x !== id);
+  recentQueryList.unshift(id);
+  if (recentQueryList.length > 5) recentQueryList = recentQueryList.slice(0, 5);
+  renderRecentQueries();
+}
+
+function renderRecentQueries() {
+  const el = document.getElementById('recentQueries');
+  if (!recentQueryList.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-faint);font-family:var(--font-mono);">Henüz sorgu yapılmadı.</div>';
+    return;
+  }
+  el.innerHTML = recentQueryList.map(id => `
+    <div onclick="window._runQuery('${id}')" style="
+      display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;
+      cursor:pointer;margin-bottom:4px;transition:.15s;
+      background:var(--bg-panel-2);border:1px solid var(--line);
+    " onmouseover="this.style.borderColor='rgba(124,92,255,.4)'" onmouseout="this.style.borderColor='var(--line)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);">${id}</span>
+    </div>`).join('');
+}
+
+async function runPlayerQuery(discordId) {
+  const panel = document.getElementById('queryResultPanel');
+  panel.className = 'query-result-panel';
+  panel.innerHTML = '<div class="query-empty"><span class="spinner"></span><span>Sorgulanıyor...</span></div>';
+
+  if (!db) {
+    panel.innerHTML = '<div class="query-empty"><span>Firestore bağlantısı yok.</span></div>';
+    return;
+  }
+
+  try {
+    // Blacklist kontrolü
+    const blMatch = blAllDocs.find(x => x.discordId === discordId);
+
+    // Admin notları
+    let noteData = null;
+    try {
+      const noteSnap = await getDoc(doc(db, "player_notes", discordId));
+      if (noteSnap.exists()) noteData = noteSnap.data();
+    } catch(e) {}
+
+    addRecentQuery(discordId);
+    logActivity("ok", `${currentUser} tarafından sorgulandı: ${discordId}`);
+
+    const isBanned = !!blMatch;
+    panel.className = 'query-result-panel ' + (isBanned ? 'danger-highlight' : 'highlight');
+
+    panel.innerHTML = `
+      <div class="player-profile-header">
+        <div class="player-big-avatar">${discordId.substring(0,2)}</div>
+        <div>
+          <div class="p-name">Oyuncu #${discordId.substring(0,8)}...</div>
+          <div class="p-id">${discordId}</div>
+          <div class="p-status">
+            ${isBanned
+              ? '<span class="status-chip">⛔ Yasaklı</span>'
+              : '<span class="status-chip clean">✓ Temiz</span>'
+            }
+          </div>
+        </div>
+        <div style="margin-left:auto;">
+          <div class="icon-btn" title="ID Kopyala" onclick="navigator.clipboard.writeText('${discordId}');window._showToast('ID kopyalandı!')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-row"><span class="lbl">Discord ID</span><span class="val">${discordId}</span></div>
+      <div class="info-row"><span class="lbl">Blacklist Durumu</span><span class="val" style="color:${isBanned ? 'var(--danger)' : '#20e37c'}">${isBanned ? '⛔ Yasaklı' : '✓ Temiz'}</span></div>
+      ${isBanned ? `
+      <div class="info-row"><span class="lbl">Yasak Sebebi</span><span class="val">${escapeHtml(blMatch.reason || '—')}</span></div>
+      <div class="info-row"><span class="lbl">Yasaklayan</span><span class="val">${escapeHtml(displayNameOf(blMatch.addedBy) || '—')}</span></div>
+      <div class="info-row"><span class="lbl">Yasak Tarihi</span><span class="val">${blMatch.ts ? formatDate(blMatch.ts) : '—'}</span></div>
+      ` : ''}
+      <div class="info-row"><span class="lbl">Sorgulayan</span><span class="val">${escapeHtml(currentUserDisplayName || currentUser)}</span></div>
+      <div class="info-row"><span class="lbl">Sorgu Zamanı</span><span class="val">${new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</span></div>
+
+      <div class="query-notes-area" id="notesArea">
+        <label>Admin Notları</label>
+        <textarea id="noteTextarea" placeholder="Bu oyuncu hakkında not ekle...">${escapeHtml(noteData?.note || '')}</textarea>
+        <div class="query-notes-foot">
+          <button class="btn-primary violet" onclick="window._savePlayerNote('${discordId}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Notu Kaydet
+          </button>
+        </div>
+      </div>
+
+      ${isBanned ? `
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:8px;">
+        <button class="btn-primary" style="font-size:12px;padding:9px 14px;" onclick="window._quickUnban('${blMatch.id}','${discordId}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
+          Yasağı Kaldır
+        </button>
+      </div>` : `
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:8px;">
+        <button class="btn-primary" style="font-size:12px;padding:9px 14px;" onclick="window._quickBan('${discordId}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
+          Blackliste Ekle
+        </button>
+      </div>`}
+    `;
+  } catch(e) {
+    panel.className = 'query-result-panel';
+    panel.innerHTML = `<div class="query-empty"><span>Sorgu başarısız: ${e.message}</span></div>`;
+  }
+}
+
+window._showToast = (msg) => showToast(msg);
+window._runQuery = (id) => {
+  document.getElementById('queryInput').value = id;
+  runPlayerQuery(id);
+};
+window._savePlayerNote = async (discordId) => {
+  const note = document.getElementById('noteTextarea')?.value?.trim() || '';
+  try {
+    await setDoc(doc(db, "player_notes", discordId), { note, updatedBy: currentUser, updatedAt: serverTimestamp() }, { merge: true });
+    showToast("Not kaydedildi!");
+    logActivity("ok", `${discordId} için not güncellendi (${currentUser})`);
+  } catch(e) { showToast("Not kaydedilemedi: " + e.message, "err"); }
+};
+window._quickBan = async (discordId) => {
+  const reason = prompt("Yasak sebebi (boş bırakılabilir):");
+  if (reason === null) return;
+  try {
+    await addDoc(collection(db, "blacklist"), { discordId, reason: reason || "", addedBy: currentUser, ts: serverTimestamp() });
+    logActivity("ban", `${discordId} blackliste eklendi (${currentUser})`);
+    sendWebhookLog({ title: "⛔ Blackliste Eklendi", description: `**${discordId}** blackliste eklendi.`, color: 0xff4d6a, fields: [{ name: "Sebep", value: reason || "Belirtilmedi" }, { name: "Ekleyen", value: currentUser, inline: true }] });
+    showToast("Blackliste eklendi!");
+    setTimeout(() => runPlayerQuery(discordId), 500);
+  } catch(e) { showToast("Ekleme başarısız.", "err"); }
+};
+window._quickUnban = async (docId, discordId) => {
+  if (!confirm(`"${discordId}" kişisinin yasağını kaldırmak istiyor musunuz?`)) return;
+  try {
+    await deleteDoc(doc(db, "blacklist", docId));
+    logActivity("ok", `${discordId} blacklistten çıkarıldı (${currentUser})`);
+    sendWebhookLog({ title: "✅ Yasak Kaldırıldı", description: `**${discordId}** yasağı kaldırıldı.`, color: 0x20e37c, fields: [{ name: "Kaldıran", value: currentUser, inline: true }] });
+    showToast("Yasak kaldırıldı!");
+    setTimeout(() => runPlayerQuery(discordId), 500);
+  } catch(e) { showToast("İşlem başarısız.", "err"); }
+};
+
+document.getElementById('queryBtn').addEventListener('click', () => {
+  const id = document.getElementById('queryInput').value.trim();
+  if (!id) { showToast("Discord ID girin.", "err"); return; }
+  if (!/^\d{17,20}$/.test(id)) { showToast("Geçersiz Discord ID formatı (17-20 rakam).", "err"); return; }
+  runPlayerQuery(id);
+});
+document.getElementById('queryInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('queryBtn').click();
+});
+
+// ===== SUNUCU İSTATİSTİKLERİ — CHART.JS =====
+function getChartData(range) {
+  if (range === 'hourly') {
+    const labels = [];
+    const data = [];
+    const now = new Date();
+    for (let i = 23; i >= 0; i--) {
+      const h = new Date(now - i * 3600000);
+      labels.push(h.getHours().toString().padStart(2,'0') + ':00');
+      const base = 80 + Math.sin((h.getHours() - 6) * Math.PI / 12) * 120;
+      data.push(Math.max(20, Math.round(base + (Math.random() - 0.5) * 30)));
+    }
+    return { labels, data };
+  } else if (range === 'daily') {
+    const labels = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+    const data = [1420, 1680, 1550, 1820, 2100, 2340, 1980];
+    return { labels, data };
+  } else {
+    const labels = ['1. Hafta','2. Hafta','3. Hafta','4. Hafta'];
+    const data = [9800, 11200, 10500, 13100];
+    return { labels, data };
+  }
+}
+
+function initPlayerChart(range) {
+  const ctx = document.getElementById('playerChart');
+  if (!ctx) return;
+  if (playerChartInstance) { playerChartInstance.destroy(); }
+  const { labels, data } = getChartData(range);
+  playerChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Oyuncu',
+        data,
+        borderColor: '#7c5cff',
+        backgroundColor: 'rgba(124,92,255,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#7c5cff',
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#12151c',
+        borderColor: '#1e222c',
+        borderWidth: 1,
+        titleColor: '#e8e9ee',
+        bodyColor: '#8a8fa3',
+        callbacks: { label: ctx => ` ${ctx.parsed.y} oyuncu` }
+      }},
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#565b6e', font: { size: 10, family: 'JetBrains Mono' } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#565b6e', font: { size: 10, family: 'JetBrains Mono' } }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function updateBanDonut() {
+  const ctx = document.getElementById('banDonut');
+  if (!ctx) return;
+
+  const reasons = {};
+  blAllDocs.forEach(x => {
+    const r = (x.reason || 'Belirtilmedi').split(' ').slice(0,3).join(' ') || 'Belirtilmedi';
+    const key = r.length > 22 ? r.substring(0, 22) + '…' : r;
+    reasons[key] = (reasons[key] || 0) + 1;
+  });
+
+  let entries = Object.entries(reasons).sort((a,b) => b[1]-a[1]).slice(0,5);
+  if (!entries.length) entries = [['Henüz ban yok', 1]];
+
+  const palette = ['#7c5cff','#00e5c7','#ff4d6a','#ffb545','#5cffb0'];
+
+  if (banDonutInstance) banDonutInstance.destroy();
+  banDonutInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(e => e[0]),
+      datasets: [{ data: entries.map(e => e[1]), backgroundColor: palette, borderColor: '#07080b', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#12151c', borderColor: '#1e222c', borderWidth: 1,
+          titleColor: '#e8e9ee', bodyColor: '#8a8fa3'
+        }
+      },
+      cutout: '68%'
+    }
+  });
+
+  const legend = document.getElementById('donutLegend');
+  if (legend) {
+    legend.innerHTML = entries.map((e, i) => `
+      <div class="donut-legend-row">
+        <span class="dl-dot" style="background:${palette[i]}"></span>
+        <span class="dl-name">${escapeHtml(e[0])}</span>
+        <span class="dl-val">${e[1]}</span>
+      </div>`).join('');
+  }
+}
+
+function initCharts() {
+  initPlayerChart(currentChartRange);
+  updateBanDonut();
+}
+
+document.querySelectorAll('.chart-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentChartRange = tab.dataset.range;
+    initPlayerChart(currentChartRange);
+  });
+});
+
+// ========== INIT ==========
+function initFirestoreListeners() {
+  listenProfiles();
+  listenBlacklist();
+  listenAnnouncements();
+  listenActivity();
+  listenChat(currentChannel);
+}
+
+} // end setupApp
+</script>
+</body>
+</html>

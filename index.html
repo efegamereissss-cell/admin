@@ -1210,7 +1210,7 @@ function setupApp() {
 
 async function sendWebhookLog({ title, description, color = 0x7c5cff, fields = [] }) {
   try {
-    await fetch('/.netlify/functions/discord-log', {
+    await fetch('/api/discord-log', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1379,7 +1379,7 @@ async function tryLogin() {
   loginBtn.disabled = true;
   loginBtn.textContent = "KONTROL EDİLİYOR...";
   try {
-    const res = await fetch('/.netlify/functions/verify-login', {
+    const res = await fetch('/api/verify-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: user, key })

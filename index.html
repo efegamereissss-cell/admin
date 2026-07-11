@@ -1177,7 +1177,7 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
       <input type="checkbox" id="rememberMe">
       <label for="rememberMe">Beni hatırla</label>
     </div>
-    <button class="login-btn" id="loginBtn" onclick="if(typeof tryLogin === 'undefined') alert('HATA: index.html dosyasını masaüstünden çift tıklayarak açamazsın! Lütfen Vercel üzerinden veya VS Code Live Server ile aç. (file:/// engeli)');" style="position:relative; z-index:999; pointer-events:auto;">GİRİŞ YAP</button>
+    <button class="login-btn" id="loginBtn">GİRİŞ YAP</button>
     <div class="login-error" id="loginError">Geçersiz kullanıcı adı veya key.</div>
   </div>
 </div>
@@ -2896,8 +2896,7 @@ function renderOwnerPanel() {
       `<option value="${p.value}" data-type="${p.type}" ${currentRole.roleTitle && ROLE_PRESETS.find(r => r.label.includes(currentRole.roleTitle.replace(/[^\w]/g,''))) ? '' : ''}>${p.label}</option>`
     ).join('');
 
-    // Seçili değeri bul
-    const savedPreset = ROLE_PRESETS.find(p => p.label.replace(/[\u{1F000}-\u{FFFF}]|[\u{10000}-\u{10FFFF}]/gu,'').trim() === currentRole.roleTitle) ||
+    const savedPreset = ROLE_PRESETS.find(p => p.label.replace(/[\u{1000}-\u{10FFFF}]/gu,'').trim() === currentRole.roleTitle) ||
       ROLE_PRESETS.find(p => p.value === (adminRoles[adminName]?.value));
     const selectedVal = adminRoles[adminName]?.value || 'admin';
 
@@ -2929,7 +2928,7 @@ window._assignRole = async (adminName, selectId) => {
   const selectedOption = select.options[select.selectedIndex];
   const value = selectedOption.value;
   const badgeType = selectedOption.dataset.type;
-  const roleTitle = selectedOption.text.replace(/^[\u{1F000}-\u{FFFF}\u{10000}-\u{10FFFF}\u2B50\s⭐]+/gu, '').trim();
+  const roleTitle = selectedOption.text.replace(/^[\u{1000}-\u{10FFFF}\u2B50\s⭐]+/gu, '').trim();
 
   const btn = select.closest('.rac-form').querySelector('.rac-save-btn');
   btn.disabled = true;

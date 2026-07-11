@@ -716,6 +716,87 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
 .log-table tbody tr:hover{background:rgba(255,255,255,.02);}
 .log-table td{padding:10px 12px;font-size:12.5px;}
 
+/* ===== MAZERET İZNİ ===== */
+.mazeret-composer{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:24px;margin-bottom:22px;
+  position:relative;overflow:hidden;
+}
+.mazeret-composer::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#ffb545,#ff4d6a,#7c5cff,#00e5c7,#ffb545);
+  background-size:300% 100%;
+  animation:rainbow-shift 6s linear infinite;
+}
+.mazeret-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.mazeret-grid .a-field.full{grid-column:1 / -1;}
+
+.mazeret-card{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 22px;position:relative;overflow:hidden;
+  border-left:3px solid var(--warn);
+  animation:announceIn .5s cubic-bezier(.2,.8,.25,1) backwards;
+  transition:transform .2s ease, border-color .2s ease;
+}
+.mazeret-card:hover{transform:translateY(-3px);border-color:rgba(255,181,69,.5);}
+.mazeret-card-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;
+}
+.mazeret-name{
+  font-family:var(--font-display);font-size:16px;letter-spacing:.3px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.mazeret-role-badge{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  padding:3px 10px;border-radius:20px;border:1px solid rgba(255,181,69,.4);
+  color:var(--warn);background:rgba(255,181,69,.08);
+}
+.mazeret-info-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;
+}
+.mazeret-info-item{
+  background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
+  padding:10px 14px;
+}
+.mazeret-info-item .mi-lbl{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:4px;
+}
+.mazeret-info-item .mi-val{
+  font-family:var(--font-mono);font-size:12.5px;color:var(--text);
+}
+.mazeret-reason{
+  background:rgba(255,181,69,.05);border:1px solid rgba(255,181,69,.15);
+  border-radius:10px;padding:12px 14px;
+  font-size:13px;color:var(--text-dim);line-height:1.6;
+  white-space:pre-wrap;
+}
+.mazeret-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+}
+.mazeret-author{
+  display:flex;align-items:center;gap:9px;
+  font-size:11px;color:var(--text-faint);font-family:var(--font-mono);
+}
+.mazeret-status-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10.5px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid;
+}
+.mazeret-status-badge.aktif{
+  color:var(--warn);border-color:rgba(255,181,69,.4);background:rgba(255,181,69,.1);
+}
+.mazeret-status-badge.aktif::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--warn);
+  animation:blink 1.4s infinite;
+}
+.mazeret-empty{
+  text-align:center;padding:50px 20px;
+  color:var(--text-faint);font-size:13px;font-family:var(--font-mono);
+}
+
 @media(max-width:1000px){
   .shell{grid-template-columns:1fr;}
   .sidebar{display:none;}
@@ -726,6 +807,8 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
   .query-wrapper{grid-template-columns:1fr;}
   .charts-grid{grid-template-columns:1fr;}
   .stats-top-grid{grid-template-columns:repeat(2,1fr);}
+  .mazeret-grid{grid-template-columns:1fr;}
+  .mazeret-info-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -845,6 +928,11 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
         <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg></span>
         Blacklist
         <span class="badge" id="blBadge">0</span>
+      </li>
+      <li class="nav-item" data-view="mazeret">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/></svg></span>
+        Mazeret İzni
+        <span class="badge mono-warn" id="mazeretBadge">0</span>
       </li>
       <li class="nav-item" data-view="admins">
         <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg></span>
@@ -1184,6 +1272,64 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
       </div>
     </section>
 
+    <!-- MAZERET İZNİ -->
+    <section class="view" id="view-mazeret">
+      <div class="topbar">
+        <div>
+          <h1>Mazeret İzni</h1>
+          <div class="crumbs">DALE DAWSON / Yönetim / Mazeret İzni</div>
+        </div>
+        <div class="live-pill" style="color:var(--warn);border-color:rgba(255,181,69,.3);background:rgba(255,181,69,.06);">
+          <span class="live-dot" style="background:var(--warn);box-shadow:0 0 8px var(--warn);"></span>
+          <span id="mazeretCountLabel">0 AKTİF İZİN</span>
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <div class="mazeret-composer">
+        <div class="panel-head"><h2><span class="dash"></span>Yeni Mazeret İzni Oluştur</h2></div>
+        <div class="mazeret-grid">
+
+          <div class="a-field">
+            <label>👤 Yetkili Adı</label>
+            <input type="text" id="mzYetkili" placeholder="Yetkili adınızı girin...">
+          </div>
+
+          <div class="a-field">
+            <label>📛 Yetkisi</label>
+            <input type="text" id="mzYetki" placeholder="Örn: Admin, Moderatör, Co-Owner...">
+          </div>
+
+          <div class="a-field">
+            <label>📅 Ayrılış Tarihi &amp; Saati</label>
+            <input type="datetime-local" id="mzAyrilis">
+          </div>
+
+          <div class="a-field">
+            <label>📅 Tahmini Dönüş Tarihi &amp; Saati</label>
+            <input type="datetime-local" id="mzDonus">
+          </div>
+
+          <div class="a-field full">
+            <label>📝 Mazeret Sebebi</label>
+            <textarea id="mzSebep" placeholder="Mazeret sebebinizi detaylı olarak açıklayın..." style="min-height:110px;"></textarea>
+          </div>
+
+        </div>
+        <div class="composer-foot">
+          <button class="btn-primary" style="background:linear-gradient(135deg,var(--warn),#c67e00);" id="mzSubmitBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            İzin Talebini Gönder
+          </button>
+        </div>
+      </div>
+
+      <!-- KAYIT LİSTESİ -->
+      <div class="announce-feed" id="mazeretFeed">
+        <div class="loading-row"><span class="spinner"></span> İzin kayıtları yükleniyor...</div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -1193,6 +1339,7 @@ import {
   getFirestore, collection, addDoc, deleteDoc, doc, setDoc, getDoc,
   onSnapshot, serverTimestamp, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 let db;
 let firebaseInitialized = false;
@@ -2066,6 +2213,156 @@ document.querySelectorAll('.chart-tab').forEach(tab => {
   });
 });
 
+// ========== MAZERET İZNİ ==========
+let mazeretUnsubscribe = null;
+
+function formatLocalDatetime(dtString) {
+  if (!dtString) return '—';
+  try {
+    const d = new Date(dtString);
+    return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  } catch(e) { return dtString; }
+}
+
+function listenMazeret() {
+  if (mazeretUnsubscribe) mazeretUnsubscribe();
+  mazeretUnsubscribe = onSnapshot(collection(db, 'mazeret_izni'), snap => {
+    const count = snap.size;
+    document.getElementById('mazeretBadge').textContent = count;
+    document.getElementById('mazeretCountLabel').textContent = count + ' AKTİF İZİN';
+    const feed = document.getElementById('mazeretFeed');
+    if (snap.empty) {
+      feed.innerHTML = '<div class="mazeret-empty">Henüz mazeret izni kaydı yok.<br><span style="font-size:11px;opacity:.6;">Yukarıdaki formu doldurarak ilk talebi oluşturun.</span></div>';
+      return;
+    }
+    feed.innerHTML = '';
+    [...snap.docs]
+      .sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0))
+      .forEach((d, idx) => {
+        const m = d.data();
+        const card = document.createElement('div');
+        card.className = 'mazeret-card';
+        card.style.animationDelay = (idx * 0.06) + 's';
+        const initials = (m.yetkiliAdi || '?').substring(0, 2).toUpperCase();
+        card.innerHTML = `
+          <div class="mazeret-card-head">
+            <div class="mazeret-name">
+              ${escapeHtml(m.yetkiliAdi || '?')}
+              <span class="mazeret-role-badge">${escapeHtml(m.yetki || '—')}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+              <span class="mazeret-status-badge aktif">İZİNDE</span>
+              <div class="icon-btn del" title="Kaydı Sil" onclick="window._deleteMazeret('${d.id}','${escapeHtml(m.yetkiliAdi || '')}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="mazeret-info-grid">
+            <div class="mazeret-info-item">
+              <div class="mi-lbl">📅 Ayrılış Tarihi & Saati</div>
+              <div class="mi-val">${escapeHtml(formatLocalDatetime(m.ayrilisTarihi))}</div>
+            </div>
+            <div class="mazeret-info-item">
+              <div class="mi-lbl">📅 Tahmini Dönüş Tarihi & Saati</div>
+              <div class="mi-val">${escapeHtml(formatLocalDatetime(m.donusTarihi))}</div>
+            </div>
+          </div>
+
+          <div style="font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin-bottom:7px;margin-top:12px;">📝 Mazeret Sebebi</div>
+          <div class="mazeret-reason">${escapeHtml(m.mazeretSebep || '—')}</div>
+
+          <div class="mazeret-footer">
+            <div class="mazeret-author">
+              <div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--warn),#c67e00);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:9px;font-weight:700;color:#07080b;">${escapeHtml(initials)}</div>
+              <span>${escapeHtml(displayNameOf(m.olusturan) || m.olusturan || '—')} tarafından oluşturuldu</span>
+            </div>
+            <span style="font-size:11px;color:var(--text-faint);font-family:var(--font-mono);">${m.createdAt ? formatDate(m.createdAt) : 'Az önce'}</span>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+  }, err => console.error('mazeret err', err));
+}
+
+window._deleteMazeret = async (docId, yetkiliAdi) => {
+  if (!confirm(`"${yetkiliAdi}" kişisinin mazeret iznini silmek istediğinize emin misiniz?`)) return;
+  try {
+    await deleteDoc(doc(db, 'mazeret_izni', docId));
+    logActivity('ok', `${yetkiliAdi} mazeret izni silindi (${currentUser})`);
+    sendWebhookLog({ title: '🗑️ Mazeret İzni Silindi', description: `**${yetkiliAdi}** adlı kişinin mazeret izni silindi.`, color: 0xffb545, fields: [{ name: 'Silen', value: currentUser, inline: true }] });
+    showToast('Mazeret izni silindi.');
+  } catch (e) { showToast('Silme başarısız: ' + e.message, 'err'); }
+};
+
+document.getElementById('mzSubmitBtn').addEventListener('click', async () => {
+  const yetkiliAdi   = document.getElementById('mzYetkili').value.trim();
+  const yetki        = document.getElementById('mzYetki').value.trim();
+  const ayrilisTarihi = document.getElementById('mzAyrilis').value;
+  const donusTarihi   = document.getElementById('mzDonus').value;
+  const mazeretSebep  = document.getElementById('mzSebep').value.trim();
+
+  // Validation
+  const fields = [
+    { el: document.getElementById('mzYetkili'), val: yetkiliAdi },
+    { el: document.getElementById('mzYetki'), val: yetki },
+    { el: document.getElementById('mzAyrilis'), val: ayrilisTarihi },
+    { el: document.getElementById('mzDonus'), val: donusTarihi },
+    { el: document.getElementById('mzSebep'), val: mazeretSebep },
+  ];
+  let hasError = false;
+  fields.forEach(f => {
+    if (!f.val) {
+      f.el.style.borderColor = 'var(--danger)';
+      setTimeout(() => { f.el.style.borderColor = ''; }, 1200);
+      hasError = true;
+    }
+  });
+  if (hasError) { showToast('Lütfen tüm alanları doldurun.', 'err'); return; }
+  if (new Date(donusTarihi) <= new Date(ayrilisTarihi)) {
+    showToast('Dönüş tarihi, ayrılış tarihinden sonra olmalıdır.', 'err');
+    return;
+  }
+
+  const btn = document.getElementById('mzSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Kaydediliyor...';
+  try {
+    await addDoc(collection(db, 'mazeret_izni'), {
+      yetkiliAdi,
+      yetki,
+      ayrilisTarihi,
+      donusTarihi,
+      mazeretSebep,
+      olusturan: currentUser,
+      createdAt: serverTimestamp()
+    });
+    logActivity('warn', `${yetkiliAdi} mazeret izni oluşturdu (${currentUser})`);
+    sendWebhookLog({
+      title: '🏖️ Yeni Mazeret İzni Talebi',
+      description: `**${yetkiliAdi}** (${yetki}) mazeret izni talep etti.`,
+      color: 0xffb545,
+      fields: [
+        { name: '📅 Ayrılış', value: formatLocalDatetime(ayrilisTarihi), inline: true },
+        { name: '📅 Tahmini Dönüş', value: formatLocalDatetime(donusTarihi), inline: true },
+        { name: '📝 Sebep', value: mazeretSebep },
+        { name: '👤 Oluşturan', value: currentUser, inline: true }
+      ]
+    });
+    showToast('Mazeret izni kaydedildi! ✓');
+    document.getElementById('mzYetkili').value = '';
+    document.getElementById('mzYetki').value = '';
+    document.getElementById('mzAyrilis').value = '';
+    document.getElementById('mzDonus').value = '';
+    document.getElementById('mzSebep').value = '';
+  } catch (e) {
+    showToast('Kayıt başarısız: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> İzin Talebini Gönder';
+  }
+});
+
 // ========== INIT ==========
 function initFirestoreListeners() {
   listenProfiles();
@@ -2073,6 +2370,7 @@ function initFirestoreListeners() {
   listenAnnouncements();
   listenActivity();
   listenChat(currentChannel);
+  listenMazeret();
 }
 
 } // end setupApp

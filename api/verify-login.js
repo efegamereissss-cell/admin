@@ -58,7 +58,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       firebaseConfig,
-      username: userMap[inputUser].display
+      username: userMap[inputUser].display,
+      adminList: Object.values(userMap).map(u => u.display)
     });
 
   } catch (e) {

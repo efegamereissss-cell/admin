@@ -480,6 +480,17 @@ body{
 .hidden-file-input{display:none;}
 .settings-hint{font-size:11px;color:var(--text-faint);font-family:var(--font-mono);margin-top:-8px;margin-bottom:14px;}
 
+.theme-options{display:flex;gap:10px;margin-bottom:18px;}
+.theme-btn{
+  width:32px;height:32px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:transform .15s;
+}
+.theme-btn:hover{transform:scale(1.1);}
+.theme-btn.active{border-color:#fff;}
+.theme-default{background:linear-gradient(135deg,#7c5cff,#00e5c7);}
+.theme-crimson{background:linear-gradient(135deg,#ff4d6a,#ffb545);}
+.theme-emerald{background:linear-gradient(135deg,#20e37c,#00c2a8);}
+
 .toast{
   position:fixed;bottom:28px;right:28px;z-index:200;
   background:linear-gradient(135deg,#1a1e28,#12151c);
@@ -882,10 +893,21 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
       <input type="file" id="settingsFileInput" class="hidden-file-input" accept="image/*">
     </div>
     <div class="settings-hint">JPG/PNG, maks. 700KB önerilir.</div>
-    <div class="a-field" style="margin-bottom:6px;">
+    
+    <div class="a-field" style="margin-bottom:14px;">
       <label>Görünen Ad</label>
       <input type="text" id="settingsDisplayName" placeholder="Görünen adınız">
     </div>
+
+    <div class="a-field">
+      <label>Panel Teması</label>
+      <div class="theme-options" id="themePicker">
+        <div class="theme-btn theme-default active" data-theme="default" title="Varsayılan"></div>
+        <div class="theme-btn theme-crimson" data-theme="crimson" title="Kızıl"></div>
+        <div class="theme-btn theme-emerald" data-theme="emerald" title="Zümrüt"></div>
+      </div>
+    </div>
+
     <div class="modal-foot">
       <button class="btn-ghost" id="settingsClose">İptal</button>
       <button class="btn-primary violet" id="settingsSave">Kaydet</button>
@@ -1274,32 +1296,13 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
     <section class="view" id="view-admins">
       <div class="topbar">
         <div>
-          <h1>Adminler</h1>
+          <h1>Personel Performans Tablosu</h1>
           <div class="crumbs">DALE DAWSON / Yönetim / Adminler</div>
         </div>
-        <div class="live-pill"><span class="live-dot"></span> 2 / 2 ÇEVRİMİÇİ</div>
+        <div class="live-pill"><span class="live-dot"></span> SİSTEM AKTİF</div>
       </div>
-      <div class="admin-grid" style="grid-template-columns:repeat(2,minmax(0,320px));justify-content:center;">
-        <div class="admin-card">
-          <div class="admin-online on"><span class="d"></span>ÇEVRİMİÇİ</div>
-          <div class="admin-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent-2));">OA</div>
-          <b>0nlyany_</b>
-          <span class="role">OWNER · KURUCU</span>
-          <div class="admin-stats-row">
-            <div><b>∞</b>Yetki</div>
-            <div><b>100%</b>Onay</div>
-          </div>
-        </div>
-        <div class="admin-card">
-          <div class="admin-online on"><span class="d"></span>ÇEVRİMİÇİ</div>
-          <div class="admin-avatar" style="background:linear-gradient(135deg,#ff8a5c,#ff4d6a);">M1</div>
-          <b>mace1n</b>
-          <span class="role">OWNER · KURUCU</span>
-          <div class="admin-stats-row">
-            <div><b>∞</b>Yetki</div>
-            <div><b>100%</b>Onay</div>
-          </div>
-        </div>
+      <div class="admin-grid" id="adminsGrid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));">
+        <div class="loading-row" style="grid-column:1/-1;"><span class="spinner"></span> Yetkili bilgileri yükleniyor...</div>
       </div>
     </section>
 
@@ -1400,6 +1403,7 @@ async function sendWebhookLog({ title, description, color = 0x7c5cff, fields = [
 }
 
 let currentUser = "";
+let serverAdmins = [];
 let currentUserPhoto = "";
 let currentUserDisplayName = "";
 let currentChannel = "genel-yonetim";
@@ -1604,6 +1608,7 @@ async function tryLogin() {
       shell.classList.add('unlocked');
     }, 350);
     currentUser = data.username || user;
+    serverAdmins = data.adminList || [currentUser];
     document.getElementById('sidebarName').textContent = currentUser;
     document.getElementById('sidebarAvatar').textContent = currentUser.substring(0, 2).toUpperCase();
     initFirestoreListeners();
@@ -1633,13 +1638,43 @@ document.querySelectorAll('.nav-item').forEach(item => {
   });
 });
 
-// ========== SETTINGS MODAL ==========
+// ========== SETTINGS MODAL & THEMES ==========
 const settingsModal = document.getElementById('settingsModal');
 const settingsAvatarPreview = document.getElementById('settingsAvatarPreview');
 const settingsFileInput = document.getElementById('settingsFileInput');
 const settingsDisplayName = document.getElementById('settingsDisplayName');
 let pendingPhotoDataUrl = null;
 let pendingPhotoRemoved = false;
+let currentTheme = localStorage.getItem('dd_theme') || 'default';
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'crimson') {
+    root.style.setProperty('--accent', '#ff4d6a');
+    root.style.setProperty('--accent-2', '#ffb545');
+  } else if (theme === 'emerald') {
+    root.style.setProperty('--accent', '#20e37c');
+    root.style.setProperty('--accent-2', '#00c2a8');
+  } else {
+    // Default
+    root.style.setProperty('--accent', '#7c5cff');
+    root.style.setProperty('--accent-2', '#00e5c7');
+  }
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.theme-btn[data-theme="${theme}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+  localStorage.setItem('dd_theme', theme);
+  currentTheme = theme;
+}
+
+// Initial theme apply
+applyTheme(currentTheme);
+
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    applyTheme(btn.dataset.theme);
+  });
+});
 
 function openSettingsModal() {
   pendingPhotoDataUrl = null;
@@ -1731,7 +1766,7 @@ function listenActivity() {
   }, err => console.error("activity err", err));
 }
 
-// ========== BLACKLIST ==========
+// ========== BLACKLIST & ADMINLER ==========
 function listenBlacklist() {
   if (blUnsubscribe) blUnsubscribe();
   blUnsubscribe = onSnapshot(collection(db, "blacklist"), snap => {
@@ -1743,7 +1778,30 @@ function listenBlacklist() {
     document.getElementById('stat-bans').textContent = count;
     renderBlacklist();
     updateBanDonut();
+    renderAdminsGrid(); // Admin tablosunu blacklist değiştiğinde güncelle
   }, err => console.error("bl err", err));
+}
+
+function renderAdminsGrid() {
+  const grid = document.getElementById('adminsGrid');
+  if (!grid || !serverAdmins.length) return;
+  
+  grid.innerHTML = serverAdmins.map(adminName => {
+    // Bu adminin eklediği blacklist sayısını hesapla
+    const blCount = blAllDocs.filter(b => b.addedBy && b.addedBy.toLowerCase() === adminName.toLowerCase()).length;
+    
+    return `
+      <div class="admin-card">
+        <div class="admin-avatar" style="background:${avatarColor(adminName)};">${avatarInner(adminName)}</div>
+        <b>${escapeHtml(displayNameOf(adminName) || adminName)}</b>
+        <span class="role">YETKİLİ PERSONEL</span>
+        <div class="admin-stats-row">
+          <div><b style="color:var(--danger);">${blCount}</b> İşlem (Ban)</div>
+          <div><b style="color:var(--accent-2);">Aktif</b> Hesap</div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function renderBlacklist() {
@@ -1908,9 +1966,16 @@ function renderChatMessages() {
     div.className = "msg" + (isEveryone ? " everyone-msg" : "");
     div.innerHTML = `
       <div class="m-avatar" style="background:${avatarColor(m.author)}">${avatarInner(m.author)}</div>
-      <div class="m-body">
-        <b>${escapeHtml(displayNameOf(m.author))}</b>
-        <span class="m-time">${m.ts ? formatDate(m.ts) : "Az önce"}</span>
+      <div class="m-body" style="flex:1;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <b>${escapeHtml(displayNameOf(m.author))}</b>
+            <span class="m-time">${m.ts ? formatDate(m.ts) : "Az önce"}</span>
+          </div>
+          <div class="icon-btn del" title="Mesajı Sil" onclick="window._deleteChatMsg('${m._id}')" style="width:24px;height:24px;background:transparent;border:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </div>
+        </div>
         <p>${formatMessageText(m.text || "")}</p>
       </div>`;
     messagesEl.appendChild(div);
@@ -1918,6 +1983,14 @@ function renderChatMessages() {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 window._rerenderChat = renderChatMessages;
+
+window._deleteChatMsg = async (msgId) => {
+  if (!confirm("Bu mesajı silmek istiyor musunuz?")) return;
+  try {
+    await deleteDoc(doc(db, `chat_${currentChannel}`, msgId));
+    // Firebase listener otomatik olarak mesajı silecek
+  } catch (e) { showToast("Mesaj silinemedi: " + e.message, "err"); }
+};
 
 function listenChat(channel) {
   if (chatUnsubscribe) chatUnsubscribe();
@@ -1928,7 +2001,7 @@ function listenChat(channel) {
   requestNotificationPermission();
 
   chatUnsubscribe = onSnapshot(collection(db, `chat_${channel}`), snap => {
-    const allDocs = [...snap.docs].map(d => d.data()).sort((a,b) => (a.ts?.seconds||0)-(b.ts?.seconds||0));
+    const allDocs = [...snap.docs].map(d => ({ ...d.data(), _id: d.id })).sort((a,b) => (a.ts?.seconds||0)-(b.ts?.seconds||0));
     if (!chatInitialized) {
       lastKnownMsgCount = allDocs.length;
       chatInitialized = true;

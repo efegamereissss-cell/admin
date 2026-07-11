@@ -731,19 +731,17 @@ body{
 
 #loginOverlay{
   position:fixed;inset:0;z-index:50;
-  background:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(124,92,255,.18), transparent 60%),
-    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(0,229,199,.12), transparent 60%),
-    linear-gradient(180deg,#07080b, #08090d 60%, #060709);
+  background:rgba(5, 6, 10, 0.45);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
   display:flex;align-items:center;justify-content:center;
 }
 #loginOverlay::before{
   content:'';position:absolute;inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-  background-size:42px 42px;
-  mask-image:radial-gradient(ellipse 1200px 800px at 50% 30%, black, transparent 75%);
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(124,92,255,.25), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(0,229,199,.15), transparent 60%);
+  pointer-events:none;
 }
 .login-card{
   position:relative;z-index:2;width:380px;

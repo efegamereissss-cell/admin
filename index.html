@@ -5,23 +5,26 @@
 <title>Dale Dawson // Admin Panel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg-void:#07080b;
-  --bg-panel:#0d0f14;
-  --bg-panel-2:#12151c;
-  --line:#1e222c;
+  --bg-void:#05060a;
+  --bg-panel:#0c0e13;
+  --bg-panel-2:#10131a;
+  --line:#1a1f2c;
   --accent:#7c5cff;
   --accent-2:#00e5c7;
   --danger:#ff4d6a;
   --warn:#ffb545;
-  --text:#e8e9ee;
+  --text:#eaebf0;
   --text-dim:#8a8fa3;
-  --text-faint:#565b6e;
+  --text-faint:#50566a;
   --radius:14px;
   --font-display:'Chakra Petch', sans-serif;
   --font-body:'Inter', sans-serif;
   --font-mono:'JetBrains Mono', monospace;
+  --font-brand:'Outfit', sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
@@ -77,12 +80,15 @@ body{
   margin-bottom:18px;
 }
 .brand-mark{
-  width:38px;height:38px;border-radius:10px;
+  height:38px;padding:0 12px;border-radius:10px;
   background:conic-gradient(from 220deg, var(--accent), var(--accent-2), var(--accent));
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:700;font-size:15px;color:#07080b;
+  font-family:var(--font-brand);font-weight:900;font-size:17px;
+  letter-spacing:2px;color:#fff;
+  text-shadow:0 1px 8px rgba(0,0,0,.4);
   box-shadow:0 0 22px rgba(124,92,255,.45);
   animation:pulse-glow 3.4s ease-in-out infinite;
+  white-space:nowrap;
 }
 @keyframes pulse-glow{
   0%,100%{box-shadow:0 0 16px rgba(124,92,255,.35);}
@@ -457,7 +463,7 @@ body{
   background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
   border:1px solid var(--line);border-radius:18px;
   padding:28px 28px 24px;width:420px;position:relative;
-  box-shadow:0 30px 80px rgba(0,0,0,.55);
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
 }
 .modal-box h3{font-family:var(--font-display);font-size:16px;margin-bottom:6px;}
 .modal-box p{font-size:12.5px;color:var(--text-faint);margin-bottom:20px;font-family:var(--font-mono);}
@@ -466,30 +472,138 @@ body{
 .btn-ghost{background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 18px;color:var(--text-dim);font-size:13px;cursor:pointer;}
 .btn-ghost:hover{border-color:var(--accent);color:var(--text);}
 
-.settings-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+/* ===== SETTINGS MODAL (PREMIUM) ===== */
+.settings-modal-box{
+  background:linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+  border:1px solid var(--line);
+  border-radius:20px;
+  width:440px;max-width:98vw;
+  position:relative;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.7);
+}
+.settings-modal-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent));
+  background-size:200% 100%;animation:rainbow-shift 4s linear infinite;
+}
+.settings-header{
+  padding:24px 24px 0;
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.settings-header-text h3{
+  font-family:var(--font-display);font-size:18px;letter-spacing:.5px;
+  margin-bottom:4px;
+}
+.settings-header-text p{
+  font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);margin:0;
+}
+.settings-close-btn{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--bg-panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text-faint);transition:all .15s;
+  flex-shrink:0;
+}
+.settings-close-btn:hover{border-color:var(--danger);color:var(--danger);}
+.settings-section{
+  padding:20px 24px;border-bottom:1px solid var(--line);
+}
+.settings-section:last-of-type{border-bottom:none;}
+.settings-section-label{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text-faint);font-family:var(--font-mono);
+  margin-bottom:14px;
+}
+.settings-avatar-hero{
+  display:flex;align-items:center;gap:18px;
+}
 .settings-avatar-preview{
-  width:72px;height:72px;border-radius:18px;flex-shrink:0;
+  width:80px;height:80px;border-radius:20px;flex-shrink:0;
   background:linear-gradient(135deg,var(--accent),var(--accent-2));
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:700;color:#07080b;font-size:24px;
-  overflow:hidden;border:1px solid var(--line);
+  font-family:var(--font-display);font-weight:700;color:#fff;font-size:26px;
+  overflow:hidden;border:2px solid rgba(255,255,255,.08);
+  box-shadow:0 8px 24px rgba(124,92,255,.25);
 }
 .settings-avatar-preview img{width:100%;height:100%;object-fit:cover;}
-.settings-avatar-actions{display:flex;flex-direction:column;gap:8px;}
-.settings-avatar-actions .btn-ghost, .settings-avatar-actions .btn-primary{padding:9px 14px;font-size:12px;}
-.hidden-file-input{display:none;}
-.settings-hint{font-size:11px;color:var(--text-faint);font-family:var(--font-mono);margin-top:-8px;margin-bottom:14px;}
-
-.theme-options{display:flex;gap:10px;margin-bottom:18px;}
-.theme-btn{
-  width:32px;height:32px;border-radius:50%;cursor:pointer;
-  border:2px solid transparent;transition:transform .15s;
+.settings-avatar-info{flex:1;}
+.settings-avatar-info .current-role-badge{
+  display:inline-block;margin-bottom:10px;
+  font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  padding:3px 10px;border-radius:20px;
 }
-.theme-btn:hover{transform:scale(1.1);}
-.theme-btn.active{border-color:#fff;}
-.theme-default{background:linear-gradient(135deg,#7c5cff,#00e5c7);}
-.theme-crimson{background:linear-gradient(135deg,#ff4d6a,#ffb545);}
-.theme-emerald{background:linear-gradient(135deg,#20e37c,#00c2a8);}
+.settings-avatar-info .current-role-badge.owner{
+  color:#f5c96c;border:1px solid rgba(245,201,108,.35);background:rgba(245,201,108,.09);
+}
+.settings-avatar-info .current-role-badge.admin{
+  color:var(--accent-2);border:1px solid rgba(0,229,199,.3);background:rgba(0,229,199,.07);
+}
+.settings-avatar-btns{display:flex;gap:8px;margin-top:8px;}
+.settings-avatar-btns .btn-ghost,
+.settings-avatar-btns .btn-primary{padding:8px 14px;font-size:12px;}
+.hidden-file-input{display:none;}
+.settings-name-row{
+  display:flex;gap:10px;align-items:flex-end;
+}
+.settings-name-row .a-field{flex:1;margin-bottom:0;}
+
+.settings-footer{
+  padding:16px 24px;
+  display:flex;justify-content:flex-end;gap:10px;
+  background:rgba(255,255,255,.02);
+}
+
+/* THEME SELECTOR */
+.theme-grid{display:flex;gap:12px;flex-wrap:wrap;}
+.theme-btn{
+  position:relative;cursor:pointer;
+  border-radius:12px;width:100%;flex:1;min-width:80px;
+  padding:14px 10px 10px;
+  border:1.5px solid var(--line);
+  background:var(--bg-panel-2);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  transition:border-color .2s,transform .15s,box-shadow .2s;
+}
+.theme-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3);}
+.theme-btn.active{border-color:var(--accent);box-shadow:0 0 16px rgba(124,92,255,.2);}
+.theme-btn .t-swatch{
+  width:36px;height:36px;border-radius:10px;
+}
+.theme-btn .t-label{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  font-family:var(--font-mono);color:var(--text-faint);
+}
+.theme-btn.active .t-label{color:var(--accent);}
+.theme-check{
+  position:absolute;top:6px;right:6px;width:14px;height:14px;
+  border-radius:50%;background:var(--accent);
+  display:none;align-items:center;justify-content:center;
+}
+.theme-btn.active .theme-check{display:flex;}
+.theme-default .t-swatch{background:linear-gradient(135deg,#7c5cff,#00e5c7);}
+.theme-crimson .t-swatch{background:linear-gradient(135deg,#ff4d6a,#ffb545);}
+.theme-emerald .t-swatch{background:linear-gradient(135deg,#20e37c,#00c2a8);}
+
+/* ===== ROZET STILLERI ===== */
+.role-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  padding:3px 10px 3px 8px;border-radius:20px;
+}
+.role-badge.owner{
+  color:#f5c96c;border:1px solid rgba(245,201,108,.35);
+  background:linear-gradient(135deg,rgba(245,201,108,.12),rgba(255,181,69,.06));
+}
+.role-badge.owner::before{
+  content:'👑';font-size:11px;
+}
+.role-badge.admin{
+  color:var(--accent-2);border:1px solid rgba(0,229,199,.25);
+  background:rgba(0,229,199,.06);
+}
+.role-badge.admin::before{
+  content:'🛡️';font-size:11px;
+}
 
 .toast{
   position:fixed;bottom:28px;right:28px;z-index:200;
@@ -881,43 +995,75 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
 
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay hidden" id="settingsModal">
-  <div class="modal-box">
-    <h3>Profil Ayarları</h3>
-    <p>Profil fotoğrafını ve görünen adını güncelle</p>
-    <div class="settings-avatar-row">
-      <div class="settings-avatar-preview" id="settingsAvatarPreview">?</div>
-      <div class="settings-avatar-actions">
-        <button class="btn-primary violet" id="settingsUploadBtn" type="button">Fotoğraf Seç</button>
-        <button class="btn-ghost" id="settingsRemoveBtn" type="button">Kaldır</button>
-      </div>
-      <input type="file" id="settingsFileInput" class="hidden-file-input" accept="image/*">
-    </div>
-    <div class="settings-hint">JPG/PNG, maks. 700KB önerilir.</div>
-    
-    <div class="a-field" style="margin-bottom:14px;">
-      <label>Görünen Ad</label>
-      <input type="text" id="settingsDisplayName" placeholder="Görünen adınız">
-    </div>
+  <div class="settings-modal-box">
 
-    <div class="a-field">
-      <label>Panel Teması</label>
-      <div class="theme-options" id="themePicker">
-        <div class="theme-btn theme-default active" data-theme="default" title="Varsayılan"></div>
-        <div class="theme-btn theme-crimson" data-theme="crimson" title="Kızıl"></div>
-        <div class="theme-btn theme-emerald" data-theme="emerald" title="Zümrüt"></div>
+    <!-- Header -->
+    <div class="settings-header">
+      <div class="settings-header-text">
+        <h3>Profil Ayarları</h3>
+        <p>Görünümünü ve panel temasını özelleştir</p>
+      </div>
+      <div class="settings-close-btn" id="settingsClose">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </div>
     </div>
 
-    <div class="modal-foot">
-      <button class="btn-ghost" id="settingsClose">İptal</button>
-      <button class="btn-primary violet" id="settingsSave">Kaydet</button>
+    <!-- Avatar + İsim -->
+    <div class="settings-section">
+      <div class="settings-section-label">Profil</div>
+      <div class="settings-avatar-hero">
+        <div class="settings-avatar-preview" id="settingsAvatarPreview">?</div>
+        <div class="settings-avatar-info">
+          <span class="current-role-badge admin" id="settingsRoleBadge">Admin</span>
+          <div class="settings-name-row">
+            <div class="a-field">
+              <label>Görünen Ad</label>
+              <input type="text" id="settingsDisplayName" placeholder="Görünen adınız">
+            </div>
+          </div>
+          <div class="settings-avatar-btns">
+            <button class="btn-primary violet" id="settingsUploadBtn" type="button">📷 Fotoğraf</button>
+            <button class="btn-ghost" id="settingsRemoveBtn" type="button">Kaldır</button>
+          </div>
+          <input type="file" id="settingsFileInput" class="hidden-file-input" accept="image/*">
+        </div>
+      </div>
     </div>
+
+    <!-- Tema -->
+    <div class="settings-section">
+      <div class="settings-section-label">Panel Teması</div>
+      <div class="theme-grid" id="themePicker">
+        <div class="theme-btn theme-default active" data-theme="default">
+          <div class="theme-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="t-swatch"></div>
+          <span class="t-label">Nebula</span>
+        </div>
+        <div class="theme-btn theme-crimson" data-theme="crimson">
+          <div class="theme-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="t-swatch"></div>
+          <span class="t-label">Kızıl</span>
+        </div>
+        <div class="theme-btn theme-emerald" data-theme="emerald">
+          <div class="theme-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="t-swatch"></div>
+          <span class="t-label">Zümrüt</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="settings-footer">
+      <button class="btn-ghost" id="settingsCancelBtn">İptal</button>
+      <button class="btn-primary violet" id="settingsSave">✓ Kaydet</button>
+    </div>
+
   </div>
 </div>
 
 <div id="loginOverlay">
   <div class="login-card">
-    <div class="login-mark">DD</div>
+    <div class="login-mark" style="font-family:var(--font-brand);font-weight:900;font-size:18px;letter-spacing:2px;">DALE</div>
     <h2>DALE DAWSON STAFFS PANEL</h2>
     <p class="sub">Devam etmek için giriş yapın</p>
     <div class="login-field">
@@ -940,7 +1086,7 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
 <div class="shell" id="shell">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark">DD</div>
+      <div class="brand-mark">DALE</div>
       <div class="brand-text">
         <b>DALE DAWSON</b>
         <span>Staffs Panel</span>
@@ -1676,16 +1822,30 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
   });
 });
 
+const OWNERS = ['0nlyany_', 'mace1n'];
+
+function getUserRole(username) {
+  return OWNERS.some(o => o.toLowerCase() === (username || '').toLowerCase()) ? 'owner' : 'admin';
+}
+
 function openSettingsModal() {
   pendingPhotoDataUrl = null;
   pendingPhotoRemoved = false;
   const existingPhoto = userProfiles[currentUser]?.photo || "";
   settingsAvatarPreview.innerHTML = existingPhoto ? `<img src="${existingPhoto}" alt="">` : currentUser.substring(0, 2).toUpperCase();
   settingsDisplayName.value = userProfiles[currentUser]?.displayName || currentUser;
+  // Rozet guncelle
+  const roleBadge = document.getElementById('settingsRoleBadge');
+  if (roleBadge) {
+    const role = getUserRole(currentUser);
+    roleBadge.className = 'current-role-badge ' + role;
+    roleBadge.textContent = role === 'owner' ? '👑 Owner' : '🛡️ Admin';
+  }
   settingsModal.classList.remove('hidden');
 }
 document.getElementById('sidebarFoot').addEventListener('click', openSettingsModal);
 document.getElementById('settingsClose').addEventListener('click', () => settingsModal.classList.add('hidden'));
+document.getElementById('settingsCancelBtn').addEventListener('click', () => settingsModal.classList.add('hidden'));
 document.getElementById('settingsUploadBtn').addEventListener('click', () => settingsFileInput.click());
 
 settingsFileInput.addEventListener('change', () => {
@@ -1785,19 +1945,31 @@ function listenBlacklist() {
 function renderAdminsGrid() {
   const grid = document.getElementById('adminsGrid');
   if (!grid || !serverAdmins.length) return;
-  
-  grid.innerHTML = serverAdmins.map(adminName => {
-    // Bu adminin eklediği blacklist sayısını hesapla
+
+  // Sort: owners first
+  const sorted = [...serverAdmins].sort((a, b) => {
+    const aOwner = OWNERS.some(o => o.toLowerCase() === a.toLowerCase()) ? 0 : 1;
+    const bOwner = OWNERS.some(o => o.toLowerCase() === b.toLowerCase()) ? 0 : 1;
+    return aOwner - bOwner;
+  });
+
+  grid.innerHTML = sorted.map(adminName => {
+    const role = getUserRole(adminName);
     const blCount = blAllDocs.filter(b => b.addedBy && b.addedBy.toLowerCase() === adminName.toLowerCase()).length;
-    
+    const badgeHtml = role === 'owner'
+      ? `<span class="role-badge owner">Owner</span>`
+      : `<span class="role-badge admin">Admin</span>`;
+    const rankLabel = role === 'owner' ? 'KURUCU / OWNER' : 'YETKİLİ PERSONEL';
+
     return `
-      <div class="admin-card">
+      <div class="admin-card" style="border-top:2px solid ${role === 'owner' ? 'rgba(245,201,108,.4)' : 'rgba(0,229,199,.2)'}; position:relative;">
         <div class="admin-avatar" style="background:${avatarColor(adminName)};">${avatarInner(adminName)}</div>
         <b>${escapeHtml(displayNameOf(adminName) || adminName)}</b>
-        <span class="role">YETKİLİ PERSONEL</span>
+        ${badgeHtml}
+        <span class="role" style="display:none;">${rankLabel}</span>
         <div class="admin-stats-row">
-          <div><b style="color:var(--danger);">${blCount}</b> İşlem (Ban)</div>
-          <div><b style="color:var(--accent-2);">Aktif</b> Hesap</div>
+          <div><b style="color:var(--danger);">${blCount}</b> Ban</div>
+          <div><b style="color:${role === 'owner' ? '#f5c96c' : 'var(--accent-2)'};">Aktif</b> Hesap</div>
         </div>
       </div>
     `;

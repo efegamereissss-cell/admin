@@ -37,18 +37,30 @@ body{
 }
 .backdrop{
   position:fixed;inset:0;z-index:0;
-  background:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(124,92,255,.16), transparent 60%),
-    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(0,229,199,.10), transparent 60%),
-    linear-gradient(180deg,#07080b, #08090d 60%, #060709);
+  background:var(--bg-void);
+  overflow:hidden;
 }
 .backdrop::before{
-  content:'';position:absolute;inset:0;
+  content:'';position:absolute;inset:0;z-index:1;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(124,92,255,.12), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(0,229,199,.08), transparent 60%);
+}
+.backdrop::after{
+  content:'';position:absolute;inset:0;z-index:2;
   background-image:
-    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
   background-size:42px 42px;
   mask-image:radial-gradient(ellipse 1200px 800px at 50% 0%, black, transparent 75%);
+}
+.bg-video{
+  position:absolute;top:50%;left:50%;
+  width:100vw;height:100vh;
+  object-fit:cover;
+  transform:translate(-50%,-50%);
+  opacity:0.35; /* Videonun ne kadar parlak olacağını belirler */
+  z-index:0;
 }
 .scanline{
   position:fixed;inset:0;z-index:1;pointer-events:none;
@@ -1050,7 +1062,13 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
 </head>
 <body>
 
-<div class="backdrop"></div>
+<div class="backdrop">
+  <!-- ARKA PLAN VIDEOSU BURAYA -->
+  <!-- Videonun sesini açmak istersen 'muted' kelimesini kaldırabilirsin, ancak tarayıcılar otomatik oynatmada sesi zorunlu kısar -->
+  <video autoplay loop muted playsinline class="bg-video">
+    <source src="https://cdn.discordapp.com/attachments/1118608249658257468/1155913222586617937/Live_Wallpaper_-_Cyberpunk_City.mp4" type="video/mp4">
+  </video>
+</div>
 <div class="scanline"></div>
 <div class="toast hidden" id="toast"></div>
 
@@ -1874,21 +1892,37 @@ async function tryLogin() {
       localStorage.removeItem('dd_remember');
     }
     await initFirebase(data.firebaseConfig);
+    
+    // Geçiş efekti
     loginOverlay.style.transition = 'opacity .35s ease';
     loginOverlay.style.opacity = '0';
     setTimeout(() => {
       loginOverlay.style.display = 'none';
       shell.classList.add('unlocked');
     }, 350);
+
     currentUser = data.username || user;
     serverAdmins = data.adminList || [currentUser];
     document.getElementById('sidebarName').textContent = currentUser;
     document.getElementById('sidebarAvatar').textContent = currentUser.substring(0, 2).toUpperCase();
-    initFirestoreListeners();
-    logActivity("join", `${user} panele giriş yaptı`);
-    sendWebhookLog({ title: "🟢 Panele Giriş Yapıldı", description: `**${user}** panele giriş yaptı.`, color: 0x00e5c7 });
+    
+    try {
+      initFirestoreListeners();
+    } catch(err) {
+      console.error("Firestore Dinleyicileri başlatılamadı:", err);
+      showToast("Dinleyiciler yüklenirken hata oluştu, bazı özellikler çalışmayabilir.", "err");
+    }
+
+    try {
+      logActivity("join", `${currentUser} panele giriş yaptı`);
+      sendWebhookLog({ title: "🟢 Panele Giriş Yapıldı", description: `**${currentUser}** panele giriş yaptı.`, color: 0x00e5c7 });
+    } catch(err) {
+      console.error("Log hatası:", err);
+    }
   } catch (e) {
-    loginError.textContent = "Sunucu bağlantı hatası. Tekrar deneyin.";
+    console.error("Giriş Hatası:", e);
+    alert("Giriş işlemi başarısız: " + (e.message || e));
+    loginError.textContent = "Bağlantı veya yetki hatası. Tekrar deneyin.";
     loginError.classList.remove('show'); void loginError.offsetWidth; loginError.classList.add('show');
     loginBtn.disabled = false;
     loginBtn.textContent = "GİRİŞ YAP";

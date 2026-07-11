@@ -1061,10 +1061,9 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
 <body>
 
 <div class="backdrop">
-  <!-- ARKA PLAN VIDEOSU BURAYA -->
-  <!-- Videonun sesini açmak istersen 'muted' kelimesini kaldırabilirsin, ancak tarayıcılar otomatik oynatmada sesi zorunlu kısar -->
+  <!-- Working video URL (Discord CDN links expire and return 403) -->
   <video autoplay loop muted playsinline class="bg-video">
-    <source src="https://cdn.discordapp.com/attachments/1118608249658257468/1155913222586617937/Live_Wallpaper_-_Cyberpunk_City.mp4" type="video/mp4">
+    <source src="https://cdn.pixabay.com/video/2020/05/25/40141-426176523_large.mp4" type="video/mp4">
   </video>
 </div>
 <div class="scanline"></div>
@@ -1178,7 +1177,7 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
       <input type="checkbox" id="rememberMe">
       <label for="rememberMe">Beni hatırla</label>
     </div>
-    <button class="login-btn" id="loginBtn">GİRİŞ YAP</button>
+    <button class="login-btn" id="loginBtn" onclick="if(typeof tryLogin === 'undefined') alert('JS Yüklenmedi veya Hata Var!');" style="position:relative; z-index:999; pointer-events:auto;">GİRİŞ YAP</button>
     <div class="login-error" id="loginError">Geçersiz kullanıcı adı veya key.</div>
   </div>
 </div>

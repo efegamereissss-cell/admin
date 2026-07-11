@@ -605,6 +605,90 @@ body{
   content:'🛡️';font-size:11px;
 }
 
+/* ===== OWNER PANEL ===== */
+.owner-nav-item{
+  background:linear-gradient(135deg,rgba(245,201,108,.08),rgba(255,181,69,.04));
+  border:1px solid rgba(245,201,108,.2);
+  margin-top:8px;
+}
+.owner-nav-item .ico{color:#f5c96c !important;}
+.owner-nav-item:hover{background:linear-gradient(135deg,rgba(245,201,108,.15),rgba(255,181,69,.08)) !important; border-color:rgba(245,201,108,.35) !important;}
+.owner-nav-item.active{background:linear-gradient(135deg,rgba(245,201,108,.18),rgba(255,181,69,.1)) !important; border-color:rgba(245,201,108,.4) !important; color:#f5c96c !important;}
+
+.owner-lock-banner{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px 20px;text-align:center;gap:18px;
+}
+.owner-lock-icon{
+  width:72px;height:72px;border-radius:20px;
+  background:linear-gradient(135deg,rgba(245,201,108,.15),rgba(255,181,69,.08));
+  border:1px solid rgba(245,201,108,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;
+}
+.owner-lock-banner h2{font-family:var(--font-display);font-size:20px;color:var(--text);}
+.owner-lock-banner p{font-size:13px;color:var(--text-faint);font-family:var(--font-mono);max-width:340px;line-height:1.6;}
+
+.role-assign-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.role-assign-card{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;
+  transition:transform .2s ease;
+}
+.role-assign-card:hover{transform:translateY(-2px);}
+.role-assign-card::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  border-radius:3px 0 0 3px;
+}
+.rac-head{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.rac-avatar{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:16px;color:#fff;
+}
+.rac-info{flex:1;min-width:0;}
+.rac-info b{display:block;font-size:14px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rac-current-badge{display:inline-block;}
+.rac-form{display:flex;flex-direction:column;gap:10px;}
+.rac-select{
+  width:100%;padding:9px 12px;
+  background:var(--bg-panel-2);border:1px solid var(--line);
+  border-radius:10px;color:var(--text);font-family:var(--font-mono);font-size:12.5px;
+  cursor:pointer;outline:none;
+  transition:border-color .15s;
+}
+.rac-select:focus{border-color:var(--accent);}
+.rac-select option{background:#0c0e13;}
+.rac-save-btn{
+  width:100%;padding:10px;
+  background:linear-gradient(135deg,rgba(245,201,108,.15),rgba(255,181,69,.08));
+  border:1px solid rgba(245,201,108,.3);
+  border-radius:10px;color:#f5c96c;
+  font-size:12px;font-family:var(--font-mono);font-weight:700;
+  letter-spacing:.5px;cursor:pointer;
+  transition:all .2s;
+}
+.rac-save-btn:hover{
+  background:linear-gradient(135deg,rgba(245,201,108,.25),rgba(255,181,69,.15));
+  border-color:rgba(245,201,108,.5);
+  box-shadow:0 4px 14px rgba(245,201,108,.15);
+}
+.rac-save-btn:disabled{opacity:.5;cursor:default;}
+
+.preset-roles-info{
+  background:rgba(245,201,108,.05);border:1px solid rgba(245,201,108,.15);
+  border-radius:10px;padding:14px 16px;
+  font-size:12px;color:var(--text-dim);line-height:1.7;
+  font-family:var(--font-mono);
+}
+.preset-roles-info span{color:#f5c96c;font-weight:700;}
+
+@media(max-width:1000px){
+  .role-assign-grid{grid-template-columns:1fr;}
+}
+
 .toast{
   position:fixed;bottom:28px;right:28px;z-index:200;
   background:linear-gradient(135deg,#1a1e28,#12151c);
@@ -1137,6 +1221,11 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
         <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg></span>
         Adminler
       </li>
+      <li class="nav-item owner-nav-item" data-view="owner" id="ownerNavItem" style="display:none;">
+        <span class="ico">&#x1F451;</span>
+        Owner Panel
+        <span class="badge" style="background:rgba(245,201,108,.15);color:#f5c96c;border:1px solid rgba(245,201,108,.3);">OWNER</span>
+      </li>
     </ul>
 
     <div class="sidebar-foot" id="sidebarFoot">
@@ -1507,6 +1596,44 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
       <!-- KAYIT LİSTESİ -->
       <div class="announce-feed" id="mazeretFeed">
         <div class="loading-row"><span class="spinner"></span> İzin kayıtları yükleniyor...</div>
+      </div>
+    </section>
+
+    <!-- OWNER PANEL -->
+    <section class="view" id="view-owner">
+      <div class="topbar">
+        <div>
+          <h1>Owner Panel</h1>
+          <div class="crumbs">DALE DAWSON / Owner / Yönetim</div>
+        </div>
+        <div class="live-pill" style="color:#f5c96c;border-color:rgba(245,201,108,.3);background:rgba(245,201,108,.06);">
+          <span class="live-dot" style="background:#f5c96c;box-shadow:0 0 8px #f5c96c;"></span>
+          SINIRLI ERİŞİM
+        </div>
+      </div>
+
+      <!-- Erişim engeli (owner olmayan için) -->
+      <div class="owner-lock-banner" id="ownerLockBanner" style="display:none;">
+        <div class="owner-lock-icon">🔒</div>
+        <h2>Erişim Kısıtlandı</h2>
+        <p>Bu bölüm yalnızca <strong style="color:#f5c96c;">Owner</strong> yetkisine sahip hesaplar tarafından kullanılabilir.</p>
+      </div>
+
+      <!-- Owner içeriği -->
+      <div id="ownerContent">
+
+        <!-- Bilgi kutusu -->
+        <div class="preset-roles-info" style="margin-bottom:22px;">
+          👑 Bu panelden tüm yetkililere özel rozet ve unvan atayabilirsiniz.
+          Atanan rozet; <span>Performans Tablosu</span>, <span>Profil</span> ve tüm panelde görünür.
+          <br>Mevcut unvanlar: <span>Co-Owner</span> · <span>Baş Admin</span> · <span>Senior Admin</span> · <span>Admin</span> · <span>Mod</span> · <span>Trial Mod</span>
+        </div>
+
+        <!-- Admin kartları -->
+        <div class="role-assign-grid" id="roleAssignGrid">
+          <div class="loading-row"><span class="spinner"></span> Yetkili listesi yükleniyor...</div>
+        </div>
+
       </div>
     </section>
 
@@ -2665,6 +2792,144 @@ document.getElementById('mzSubmitBtn').addEventListener('click', async () => {
   }
 });
 
+// ========== OWNER PANEL ==========
+let adminRoles = {}; // { username: { roleTitle, badgeType, assignedBy } }
+let adminRolesUnsubscribe = null;
+
+const ROLE_PRESETS = [
+  { value: 'co-owner',    label: '👑 Co-Owner',    type: 'owner' },
+  { value: 'bas-admin',   label: '⭐ Baş Admin',   type: 'admin-gold' },
+  { value: 'senior-admin',label: '🔶 Senior Admin', type: 'admin' },
+  { value: 'admin',       label: '🛡️ Admin',      type: 'admin' },
+  { value: 'moderator',   label: '📋 Moderatör',   type: 'mod' },
+  { value: 'trial-mod',   label: '🌱 Trial Mod',   type: 'mod' },
+];
+
+function getAdminDisplayRole(username) {
+  if (adminRoles[username]) return adminRoles[username];
+  const isOwner = OWNERS.some(o => o.toLowerCase() === username.toLowerCase());
+  return isOwner
+    ? { roleTitle: 'Owner', badgeType: 'owner' }
+    : { roleTitle: 'Admin', badgeType: 'admin' };
+}
+
+function roleBadgeHtml(roleData) {
+  const { roleTitle, badgeType } = roleData;
+  const styleMap = {
+    'owner':      'color:#f5c96c;border-color:rgba(245,201,108,.4);background:rgba(245,201,108,.1);',
+    'admin-gold': 'color:#ffb545;border-color:rgba(255,181,69,.4);background:rgba(255,181,69,.08);',
+    'admin':      'color:var(--accent-2);border-color:rgba(0,229,199,.3);background:rgba(0,229,199,.07);',
+    'mod':        'color:var(--accent);border-color:rgba(124,92,255,.3);background:rgba(124,92,255,.07);',
+  };
+  const style = styleMap[badgeType] || styleMap['admin'];
+  return `<span class="role-badge" style="${style}">${escapeHtml(roleTitle)}</span>`;
+}
+
+function listenAdminRoles() {
+  if (adminRolesUnsubscribe) adminRolesUnsubscribe();
+  adminRolesUnsubscribe = onSnapshot(collection(db, 'admin_roles'), snap => {
+    adminRoles = {};
+    snap.docs.forEach(d => { adminRoles[d.id] = d.data(); });
+    renderAdminsGrid();
+    renderOwnerPanel();
+  }, err => console.error('admin_roles err', err));
+}
+
+function renderOwnerPanel() {
+  const isOwner = getUserRole(currentUser) === 'owner';
+  const lockBanner = document.getElementById('ownerLockBanner');
+  const ownerContent = document.getElementById('ownerContent');
+  if (!lockBanner || !ownerContent) return;
+
+  if (!isOwner) {
+    lockBanner.style.display = 'flex';
+    ownerContent.style.display = 'none';
+    return;
+  }
+  lockBanner.style.display = 'none';
+  ownerContent.style.display = 'block';
+
+  const nonOwners = serverAdmins.filter(n => getUserRole(n) !== 'owner');
+  const grid = document.getElementById('roleAssignGrid');
+  if (!grid) return;
+
+  if (!nonOwners.length) {
+    grid.innerHTML = '<div class="mazeret-empty">Atanacak admin bulunamadı.</div>';
+    return;
+  }
+
+  grid.innerHTML = nonOwners.map(adminName => {
+    const currentRole = getAdminDisplayRole(adminName);
+    const selectId = `roleSelect_${adminName.replace(/[^a-z0-9]/gi,'_')}`;
+    const optionsHtml = ROLE_PRESETS.map(p =>
+      `<option value="${p.value}" data-type="${p.type}" ${currentRole.roleTitle && ROLE_PRESETS.find(r => r.label.includes(currentRole.roleTitle.replace(/[^\w]/g,''))) ? '' : ''}>${p.label}</option>`
+    ).join('');
+
+    // Seçili değeri bul
+    const savedPreset = ROLE_PRESETS.find(p => p.label.replace(/[\u{1F000}-\u{FFFF}]|[\u{10000}-\u{10FFFF}]/gu,'').trim() === currentRole.roleTitle) ||
+      ROLE_PRESETS.find(p => p.value === (adminRoles[adminName]?.value));
+    const selectedVal = adminRoles[adminName]?.value || 'admin';
+
+    return `
+      <div class="role-assign-card">
+        <div class="rac-head">
+          <div class="rac-avatar" style="background:${avatarColor(adminName)}">${avatarInner(adminName)}</div>
+          <div class="rac-info">
+            <b>${escapeHtml(displayNameOf(adminName) || adminName)}</b>
+            <div class="rac-current-badge">${roleBadgeHtml(currentRole)}</div>
+          </div>
+        </div>
+        <div class="rac-form">
+          <select class="rac-select" id="${selectId}">
+            ${ROLE_PRESETS.map(p => `<option value="${p.value}" data-type="${p.type}" ${p.value === selectedVal ? 'selected' : ''}>${p.label}</option>`).join('')}
+          </select>
+          <button class="rac-save-btn" onclick="window._assignRole('${adminName}','${selectId}')">
+            ✦ ROZET ATA / GÜNCELLE
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window._assignRole = async (adminName, selectId) => {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  const selectedOption = select.options[select.selectedIndex];
+  const value = selectedOption.value;
+  const badgeType = selectedOption.dataset.type;
+  const roleTitle = selectedOption.text.replace(/^[\u{1F000}-\u{FFFF}\u{10000}-\u{10FFFF}\u2B50\s⭐]+/gu, '').trim();
+
+  const btn = select.closest('.rac-form').querySelector('.rac-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Kaydediliyor...';
+  try {
+    await setDoc(doc(db, 'admin_roles', adminName), {
+      roleTitle: selectedOption.text.replace(/^[^\w\s]+/u, '').trim(),
+      badgeType,
+      value,
+      assignedBy: currentUser,
+      assignedAt: serverTimestamp()
+    });
+    logActivity('ok', `${adminName} kullanıcısına "${selectedOption.text.trim()}" rozeti atandı (${currentUser})`);
+    sendWebhookLog({
+      title: '👑 Rozet Atandı',
+      description: `**${adminName}** kullanıcısına yeni rozet verildi.`,
+      color: 0xf5c96c,
+      fields: [
+        { name: 'Yeni Rozet', value: selectedOption.text.trim(), inline: true },
+        { name: 'Atayan', value: currentUser, inline: true }
+      ]
+    });
+    showToast(`${adminName} → ${selectedOption.text.trim()} ✓`);
+  } catch(e) {
+    showToast('Kaydedilemedi: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ ROZET ATA / GÜNCELLE';
+  }
+};
+
 // ========== INIT ==========
 function initFirestoreListeners() {
   listenProfiles();
@@ -2673,6 +2938,10 @@ function initFirestoreListeners() {
   listenActivity();
   listenChat(currentChannel);
   listenMazeret();
+  listenAdminRoles();
+  // Owner nav item'ı göster/gizle
+  const ownerNav = document.getElementById('ownerNavItem');
+  if (ownerNav) ownerNav.style.display = getUserRole(currentUser) === 'owner' ? 'flex' : 'none';
 }
 
 } // end setupApp

@@ -2898,7 +2898,12 @@ function listenYoklama() {
       
       html += `
         <div class="past-yoklama-card">
-          <h4>${escapeHtml(doc.title || 'İsimsiz Toplantı')}</h4>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+            <h4 style="margin:0;font-size:16px;">${escapeHtml(doc.title || 'İsimsiz Toplantı')}</h4>
+            <div class="icon-btn del" style="margin:0;padding:4px;border-radius:4px;cursor:pointer;color:var(--danger);" title="Yoklamayı Sil" onclick="window._deleteYoklama('${doc.id}', '${escapeHtml((doc.title || 'İsimsiz Toplantı').replace(/'/g, "\\'"))}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </div>
+          </div>
           <div class="past-yoklama-meta">
             <span>📅 ${doc.createdAt ? formatDate(doc.createdAt) : 'Az önce'}</span>
             <span>👤 ${escapeHtml(doc.createdBy)}</span>
@@ -2917,6 +2922,23 @@ function listenYoklama() {
     list.innerHTML = html;
   }, err => console.error('yoklama err', err));
 }
+
+window._deleteYoklama = async (docId, title) => {
+  if (!confirm(`"${title}" başlıklı yoklama kaydını silmek istediğinize emin misiniz?`)) return;
+  try {
+    await deleteDoc(doc(db, 'yoklama', docId));
+    logActivity('ok', `"${title}" başlıklı yoklama silindi (${currentUser})`);
+    sendWebhookLog({
+      title: '🗑️ Yoklama Silindi',
+      description: `**${currentUser}** adlı yetkili bir yoklama kaydını sildi.`,
+      color: 0xffb545,
+      fields: [{ name: 'Silinen Toplantı', value: title, inline: true }]
+    });
+    showToast('Yoklama kaydı silindi.');
+  } catch (e) {
+    showToast('Silme başarısız: ' + e.message, 'err');
+  }
+};
 
 document.getElementById('yoklamaSubmitBtn').addEventListener('click', async () => {
   const titleInput = document.getElementById('yoklamaTitle');

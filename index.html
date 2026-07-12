@@ -982,30 +982,6 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
 .mazeret-grid .a-field.full{grid-column:1 / -1;}
 
 .mazeret-card{
-  background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
-  border:1px solid var(--line);border-radius:var(--radius);
-  padding:20px 22px;position:relative;overflow:hidden;
-  border-left:3px solid var(--warn);
-  animation:announceIn .5s cubic-bezier(.2,.8,.25,1) backwards;
-  transition:transform .2s ease, border-color .2s ease;
-}
-.mazeret-card:hover{transform:translateY(-3px);border-color:rgba(255,181,69,.5);}
-.mazeret-card-head{
-  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;
-}
-.mazeret-name{
-  font-family:var(--font-display);font-size:16px;letter-spacing:.3px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
-.mazeret-role-badge{
-  font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
-  padding:3px 10px;border-radius:20px;border:1px solid rgba(255,181,69,.4);
-  color:var(--warn);background:rgba(255,181,69,.08);
-}
-.mazeret-info-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;
-}
-.mazeret-info-item{
   background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
   padding:10px 14px;
 }
@@ -1231,6 +1207,10 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
         <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/></svg></span>
         Mazeret İzni
         <span class="badge mono-warn" id="mazeretBadge">0</span>
+      </li>
+      <li class="nav-item" data-view="yoklama">
+        <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg></span>
+        Yoklama
       </li>
       <li class="nav-item" data-view="admins">
         <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg></span>
@@ -1649,6 +1629,45 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
           <div class="loading-row"><span class="spinner"></span> Yetkili listesi yükleniyor...</div>
         </div>
 
+      </div>
+    </section>
+
+    <!-- YOKLAMA -->
+    <section class="view" id="view-yoklama">
+      <div class="view-header">
+        <h1>Toplantı Yoklaması</h1>
+        <p>Toplantılarda yetkililerin katılımlarını kayıt altına alın.</p>
+      </div>
+      <div class="split-layout" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        
+        <!-- Yoklama Al -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Yeni Yoklama Başlat</h3>
+          </div>
+          <div class="yoklama-form">
+            <div class="mz-field" style="margin-bottom:15px;">
+              <label>Toplantı Başlığı / Tarihi</label>
+              <input type="text" id="yoklamaTitle" placeholder="Örn: Haftalık Genel Toplantı" autocomplete="off">
+            </div>
+            <div class="yoklama-list" id="yoklamaNewList">
+              <div class="loading-row"><span class="spinner"></span> Yetkililer yükleniyor...</div>
+            </div>
+            <button class="btn-primary" id="yoklamaSubmitBtn" style="width:100%;margin-top:20px;">
+              Yoklamayı Kaydet
+            </button>
+          </div>
+        </div>
+
+        <!-- Geçmiş Yoklamalar -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Geçmiş Yoklamalar</h3>
+          </div>
+          <div class="past-yoklama-list" id="yoklamaPastList">
+            <div class="loading-row"><span class="spinner"></span> Yükleniyor...</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -2823,6 +2842,133 @@ document.getElementById('mzSubmitBtn').addEventListener('click', async () => {
   }
 });
 
+// ========== YOKLAMA ==========
+let yoklamaUnsubscribe = null;
+
+function renderYoklamaNewList() {
+  const list = document.getElementById('yoklamaNewList');
+  if (!list || !serverAdmins.length) return;
+  
+  const sortedAdmins = [...serverAdmins].sort((a, b) => a.localeCompare(b));
+  
+  list.innerHTML = sortedAdmins.map(admin => {
+    const safeAdmin = admin.replace(/[^a-zA-Z0-9]/g, '_');
+    return `
+      <div class="yoklama-row">
+        <div class="yoklama-user">${avatarInner(admin)} ${escapeHtml(admin)}</div>
+        <div class="yoklama-options">
+          <input type="radio" name="yoklama_${safeAdmin}" id="y_${safeAdmin}_katildi" value="KATILDI" class="y-radio" checked>
+          <label for="y_${safeAdmin}_katildi" class="y-label katildi">Katıldı</label>
+          
+          <input type="radio" name="yoklama_${safeAdmin}" id="y_${safeAdmin}_katilmadi" value="KATILMADI" class="y-radio">
+          <label for="y_${safeAdmin}_katilmadi" class="y-label katilmadi">Katılmadı</label>
+          
+          <input type="radio" name="yoklama_${safeAdmin}" id="y_${safeAdmin}_mazeretli" value="MAZERETLİ" class="y-radio">
+          <label for="y_${safeAdmin}_mazeretli" class="y-label mazeretli">Mazeretli</label>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function listenYoklama() {
+  if (yoklamaUnsubscribe) yoklamaUnsubscribe();
+  yoklamaUnsubscribe = onSnapshot(collection(db, 'yoklama'), snap => {
+    const list = document.getElementById('yoklamaPastList');
+    if (!list) return;
+    if (snap.empty) {
+      list.innerHTML = '<div class="mazeret-empty">Geçmiş yoklama bulunamadı.</div>';
+      return;
+    }
+    
+    let html = '';
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    
+    docs.forEach(doc => {
+      let kCount = 0, kmCount = 0, mCount = 0;
+      let detailsHtml = '';
+      for (const [admin, status] of Object.entries(doc.records || {})) {
+        if (status === 'KATILDI') kCount++;
+        else if (status === 'KATILMADI') kmCount++;
+        else if (status === 'MAZERETLİ') mCount++;
+        
+        let color = status === 'KATILDI' ? 'var(--accent-2)' : status === 'KATILMADI' ? 'var(--danger)' : 'var(--warn)';
+        detailsHtml += `<span>${escapeHtml(admin)} <b style="color:${color}">${status}</b></span>`;
+      }
+      
+      html += `
+        <div class="past-yoklama-card">
+          <h4>${escapeHtml(doc.title || 'İsimsiz Toplantı')}</h4>
+          <div class="past-yoklama-meta">
+            <span>📅 ${doc.createdAt ? formatDate(doc.createdAt) : 'Az önce'}</span>
+            <span>👤 ${escapeHtml(doc.createdBy)}</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:12px;font-size:12px;font-weight:600;">
+            <span style="color:var(--accent-2)">Katıldı: ${kCount}</span>
+            <span style="color:var(--danger)">Katılmadı: ${kmCount}</span>
+            <span style="color:var(--warn)">Mazeretli: ${mCount}</span>
+          </div>
+          <div class="past-yoklama-details">
+            ${detailsHtml}
+          </div>
+        </div>
+      `;
+    });
+    list.innerHTML = html;
+  }, err => console.error('yoklama err', err));
+}
+
+document.getElementById('yoklamaSubmitBtn').addEventListener('click', async () => {
+  const titleInput = document.getElementById('yoklamaTitle');
+  const title = titleInput.value.trim();
+  if (!title) {
+    showToast('Lütfen bir toplantı başlığı girin!', 'err');
+    return;
+  }
+  
+  const records = {};
+  serverAdmins.forEach(admin => {
+    const safeAdmin = admin.replace(/[^a-zA-Z0-9]/g, '_');
+    const checked = document.querySelector(`input[name="yoklama_${safeAdmin}"]:checked`);
+    if (checked) {
+      records[admin] = checked.value;
+    }
+  });
+  
+  const btn = document.getElementById('yoklamaSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Kaydediliyor...';
+  
+  try {
+    await addDoc(collection(db, 'yoklama'), {
+      title,
+      records,
+      createdBy: currentUser,
+      createdAt: serverTimestamp()
+    });
+    
+    showToast('Yoklama başarıyla kaydedildi! ✓');
+    titleInput.value = '';
+    // Reset radios to 'KATILDI'
+    document.querySelectorAll('.y-radio[value="KATILDI"]').forEach(r => r.checked = true);
+    
+    logActivity('info', `"${title}" başlıklı toplantı yoklaması alındı (${currentUser})`);
+    sendWebhookLog({
+      title: '📋 Yeni Toplantı Yoklaması',
+      description: `**${currentUser}** tarafından yeni bir yoklama kaydedildi.`,
+      color: 0x7c5cff,
+      fields: [
+        { name: 'Toplantı', value: title, inline: true }
+      ]
+    });
+  } catch (e) {
+    showToast('Hata: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Yoklamayı Kaydet';
+  }
+});
+
 // ========== OWNER PANEL ==========
 let adminRoles = {}; // { username: { roleTitle, badgeType, assignedBy } }
 let adminRolesUnsubscribe = null;
@@ -2969,6 +3115,8 @@ function initFirestoreListeners() {
   listenChat(currentChannel);
   listenMazeret();
   listenAdminRoles();
+  listenYoklama();
+  renderYoklamaNewList();
   // Owner nav item'ı göster/gizle
   const ownerNav = document.getElementById('ownerNavItem');
   if (ownerNav) ownerNav.style.display = getUserRole(currentUser) === 'owner' ? 'flex' : 'none';

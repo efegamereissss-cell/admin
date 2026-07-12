@@ -1268,10 +1268,23 @@ canvas.donut-chart{max-height:180px;max-width:180px;}
           <div class="stat-sub">toplam yayında</div>
         </div>
       </div>
-      <div class="panel">
-        <div class="panel-head"><h2><span class="dash"></span>Son Hareketler</h2></div>
-        <div id="activityFeed">
-          <div class="loading-row"><span class="spinner"></span> Yükleniyor...</div>
+      <div class="split-layout" style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+        <div class="panel">
+          <div class="panel-head"><h2><span class="dash"></span>Son Hareketler</h2></div>
+          <div id="activityFeed">
+            <div class="loading-row"><span class="spinner"></span> Yükleniyor...</div>
+          </div>
+        </div>
+
+        <!-- Discord ID Widget -->
+        <div class="panel">
+          <div class="panel-head"><h2><span class="dash"></span>Discord ID Okuyucu</h2></div>
+          <div style="padding:16px;">
+            <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Discord hesabının tam kuruluş tarihini saniyesine kadar sorgulayın.</p>
+            <input type="text" id="dcIdInput" placeholder="Kullanıcı ID (Örn: 123456789)" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg-void);color:var(--text);margin-bottom:12px;font-family:var(--font-mono);">
+            <button class="btn-primary" id="dcIdCheckBtn" style="width:100%;padding:10px;display:flex;justify-content:center;">Sorgula</button>
+            <div id="dcIdResult" style="margin-top:16px;padding:12px;background:rgba(255,255,255,.02);border:1px dashed var(--line);border-radius:8px;font-size:13px;display:none;"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -1844,10 +1857,78 @@ function refreshSidebarAvatar() {
   const p = userProfiles[currentUser];
   currentUserPhoto = p?.photo || "";
   currentUserDisplayName = p?.displayName || currentUser;
+  const xp = p?.xp || 0;
+  const level = Math.floor(Math.sqrt(xp / 20)) + 1;
+  const nextLvlXp = 20 * Math.pow(level, 2);
+  const prevLvlXp = 20 * Math.pow(level - 1, 2);
+  const progress = Math.max(0, Math.min(100, ((xp - prevLvlXp) / (nextLvlXp - prevLvlXp)) * 100));
+
   const av = document.getElementById('sidebarAvatar');
   av.innerHTML = currentUserPhoto ? `<img src="${currentUserPhoto}" alt="">` : currentUser.substring(0, 2).toUpperCase();
-  document.getElementById('sidebarName').textContent = currentUserDisplayName;
+  
+  const nameEl = document.getElementById('sidebarName');
+  nameEl.innerHTML = `
+    ${escapeHtml(currentUserDisplayName)}
+    <div style="font-size:10px;font-weight:700;color:var(--accent-2);margin-top:4px;">LEVEL ${level} <span style="color:var(--text-faint);">(${xp} XP)</span></div>
+    <div style="width:100%;height:4px;background:var(--bg-void);border-radius:4px;margin-top:4px;overflow:hidden;">
+      <div style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:${progress}%;"></div>
+    </div>
+  `;
 }
+
+async function addXP(amount) {
+  if (!currentUser) return;
+  try {
+    const currentXp = userProfiles[currentUser]?.xp || 0;
+    const newXp = currentXp + amount;
+    
+    // Check level up
+    const currentLevel = Math.floor(Math.sqrt(currentXp / 20)) + 1;
+    const newLevel = Math.floor(Math.sqrt(newXp / 20)) + 1;
+    
+    await setDoc(doc(db, "user_profiles", currentUser), { xp: newXp, updatedAt: serverTimestamp() }, { merge: true });
+    
+    if (newLevel > currentLevel) {
+      showToast(`Tebrikler! Seviye atladın: LEVEL ${newLevel} 🚀`, "ok");
+      logActivity('ok', `${currentUser} LEVEL ${newLevel} oldu!`);
+    }
+  } catch (e) {
+    console.error("XP Ekleme Hatası:", e);
+  }
+}
+
+// ========== DİSCORD ID OKUYUCU ==========
+document.getElementById('dcIdCheckBtn').addEventListener('click', () => {
+  const input = document.getElementById('dcIdInput').value.trim();
+  const res = document.getElementById('dcIdResult');
+  if (!/^\d{17,20}$/.test(input)) {
+    res.style.display = 'block';
+    res.style.borderColor = 'var(--danger)';
+    res.innerHTML = '<span style="color:var(--danger);font-weight:600;">Geçersiz ID!</span> Sadece 17-20 haneli Discord Snowflake ID giriniz.';
+    return;
+  }
+  
+  try {
+    const DISCORD_EPOCH = 1420070400000n;
+    const timestamp = Number((BigInt(input) >> 22n) + DISCORD_EPOCH);
+    const date = new Date(timestamp);
+    const now = new Date();
+    
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    res.style.display = 'block';
+    res.style.borderColor = 'var(--accent-2)';
+    res.innerHTML = `
+      <div style="margin-bottom:6px;"><span style="color:var(--text-dim);">Kuruluş Tarihi:</span> <b>${date.toLocaleDateString('tr-TR')} ${date.toLocaleTimeString('tr-TR')}</b></div>
+      <div><span style="color:var(--text-dim);">Hesap Yaşı:</span> <b style="color:var(--accent-2);">${diffDays} Günlük</b></div>
+    `;
+  } catch (e) {
+    res.style.display = 'block';
+    res.style.borderColor = 'var(--danger)';
+    res.innerHTML = '<span style="color:var(--danger);">Hesaplama hatası. Geçerli bir ID girdiğinizden emin olun.</span>';
+  }
+});
 
 // ========== LOGIN ==========
 const loginBtn = document.getElementById('loginBtn');
@@ -2132,6 +2213,8 @@ function renderAdminsGrid() {
 
   grid.innerHTML = sorted.map(adminName => {
     const role = getUserRole(adminName);
+    const xp = userProfiles[adminName]?.xp || 0;
+    const level = Math.floor(Math.sqrt(xp / 20)) + 1;
     const blCount = blAllDocs.filter(b => b.addedBy && b.addedBy.toLowerCase() === adminName.toLowerCase()).length;
     const badgeHtml = role === 'owner'
       ? `<span class="role-badge owner">Owner</span>`
@@ -2142,6 +2225,7 @@ function renderAdminsGrid() {
       <div class="admin-card" style="border-top:2px solid ${role === 'owner' ? 'rgba(245,201,108,.4)' : 'rgba(0,229,199,.2)'}; position:relative;">
         <div class="admin-avatar" style="background:${avatarColor(adminName)};">${avatarInner(adminName)}</div>
         <b>${escapeHtml(displayNameOf(adminName) || adminName)}</b>
+        <div style="font-size:11px;font-weight:700;color:var(--accent-2);margin-top:2px;margin-bottom:6px;">LEVEL ${level} <span style="color:var(--text-faint);">(${xp} XP)</span></div>
         ${badgeHtml}
         <span class="role" style="display:none;">${rankLabel}</span>
         <div class="admin-stats-row">
@@ -2206,6 +2290,7 @@ document.getElementById('blModalAdd').addEventListener('click', async () => {
   if (blAllDocs.find(x => x.discordId === id)) { showToast("Bu ID zaten listede.", "err"); return; }
   try {
     await addDoc(collection(db, "blacklist"), { discordId: id, reason: reason || "", addedBy: currentUser, ts: serverTimestamp() });
+    addXP(10);
     logActivity("ban", `${id} blackliste eklendi (${currentUser})`);
     sendWebhookLog({ title: "⛔ Blackliste Eklendi", description: `**${id}** kullanıcısı blackliste eklendi.`, color: 0xff4d6a, fields: [{ name: "Sebep", value: reason || "Belirtilmedi" }, { name: "Ekleyen", value: currentUser, inline: true }] });
     showToast("Blackliste eklendi!");
@@ -2286,6 +2371,7 @@ document.getElementById('annPublishBtn').addEventListener('click', async () => {
   }
   try {
     await addDoc(collection(db, "announcements"), { title, body, tag: selectedTag, author: currentUser, ts: serverTimestamp() });
+    addXP(5);
     logActivity("ok", `Yeni duyuru: "${title}" (${currentUser})`);
     sendWebhookLog({ title: "📢 Yeni Duyuru Yayınlandı", description: `**${title}**\n\n${body}`, color: 0x7c5cff, fields: [{ name: "Etiket", value: tagLabels[selectedTag] || selectedTag, inline: true }, { name: "Yayınlayan", value: currentUser, inline: true }] });
     showToast("Duyuru yayınlandı!");
@@ -2311,6 +2397,8 @@ function renderChatMessages() {
   messagesEl.innerHTML = "";
   lastChatDocs.forEach(m => {
     const isEveryone = m.everyone === true;
+    const xp = userProfiles[m.author]?.xp || 0;
+    const level = Math.floor(Math.sqrt(xp / 20)) + 1;
     const div = document.createElement('div');
     div.className = "msg" + (isEveryone ? " everyone-msg" : "");
     div.innerHTML = `
@@ -2318,7 +2406,7 @@ function renderChatMessages() {
       <div class="m-body" style="flex:1;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
           <div>
-            <b>${escapeHtml(displayNameOf(m.author))}</b>
+            <b>${escapeHtml(displayNameOf(m.author))}</b> <span style="font-size:10px;background:var(--accent-2);color:#000;padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:800;vertical-align:middle;">Lvl ${level}</span>
             <span class="m-time">${m.ts ? formatDate(m.ts) : "Az önce"}</span>
           </div>
           <div class="icon-btn del" title="Mesajı Sil" onclick="window._deleteChatMsg('${m._id}')" style="width:24px;height:24px;background:transparent;border:none;">
@@ -2385,6 +2473,7 @@ async function sendChatMessage() {
   const isEveryone = text.includes('@everyone');
   try {
     await addDoc(collection(db, `chat_${currentChannel}`), { text, author: currentUser, ts: serverTimestamp(), everyone: isEveryone });
+    addXP(2);
     if (isEveryone) {
       logActivity("warn", `${currentUser} #${currentChannel} kanalında @everyone kullandı`);
       sendWebhookLog({ title: `📢 @everyone — #${currentChannel}`, description: text, color: 0xff4d6a, fields: [{ name: "Gönderen", value: currentUser, inline: true }] });
@@ -2816,6 +2905,7 @@ document.getElementById('mzSubmitBtn').addEventListener('click', async () => {
       olusturan: currentUser,
       createdAt: serverTimestamp()
     });
+    addXP(5);
     logActivity('warn', `${yetkiliAdi} mazeret izni oluşturdu (${currentUser})`);
     sendWebhookLog({
       title: '🏖️ Yeni Mazeret İzni Talebi',
@@ -2968,6 +3058,7 @@ document.getElementById('yoklamaSubmitBtn').addEventListener('click', async () =
       createdBy: currentUser,
       createdAt: serverTimestamp()
     });
+    addXP(15);
     
     showToast('Yoklama başarıyla kaydedildi! ✓');
     titleInput.value = '';
